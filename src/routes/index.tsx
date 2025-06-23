@@ -8,6 +8,7 @@ import { DatePicker } from "antd";
 import { useGetUser } from "../features/user";
 import { useGetTrains } from "../features/train";
 import TrainTable from "../widgets/trainTable";
+import CreateTrainForm from "../widgets/createTrainForm";
 
 const { RangePicker } = DatePicker;
 
@@ -33,5 +34,5 @@ function RouteComponent() {
     return <div>Загрузка...</div>;
   }
 
-  return <TrainTable trains={trains} />;
+  return <CreateTrainForm/>;
 }

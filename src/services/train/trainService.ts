@@ -5,3 +5,7 @@ export const getTrains = async (): Promise<TrainResponse[]> => {
   const response = await client.get("train");
   return response.data;
 };
+export const createTrain = async (trainData: TrainResponse): Promise<TrainResponse> => {
+  const response = await client.post("/train", trainData);
+  return response.data;
+};
