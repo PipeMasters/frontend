@@ -9,6 +9,7 @@ import { useGetUser } from "../features/user";
 import { useGetTrains } from "../features/train";
 import TrainTable from "../widgets/trainTable";
 import CreateTrainForm from "../widgets/createTrainForm";
+import CreateBranchForm from "../widgets/createBranchForm";
 
 const { RangePicker } = DatePicker;
 
@@ -29,10 +30,17 @@ const fetchWorkers = async () => {
 function RouteComponent() {
   //   const { data: user, isLoading } = useGetUser(1);
   const { data: trains = [], isLoading } = useGetTrains();
-
+  const { data: user } = useGetUser(1);
   if (isLoading) {
     return <div>Загрузка...</div>;
   }
 
-  return <CreateTrainForm/>;
+  //   return <CreateTrainForm/>;
+
+    return <CreateBranchForm/>;
+//   return (
+//     <div className="p-4">
+//       <strong>{user?.name}</strong>
+//     </div>
+//   );
 }
