@@ -1,5 +1,38 @@
 @import "tailwindcss";
 body{
+  font-family: 'RussianRail', sans-serif;
   margin: 0;
   padding: 0;
+}
+
+
+@font-face {
+  font-family: 'RussianRail';
+  src: url('./shared/font/RussianRail G Regular.otf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.ant-modal {
+  font-family: 'RussianRail', sans-serif !important;
+  font-size: 20px;
+}
+
+.ant-form, 
+.ant-form-item, 
+.ant-form-item-label, 
+.ant-form-item-explain, 
+.ant-input, 
+.ant-btn {
+  font-family: 'RussianRail', sans-serif !important;
+}
+
+.ant-select,
+.ant-select-selector,
+.ant-select-selection-item,
+.ant-select-selection-placeholder,
+.ant-select-dropdown,
+.ant-select-item-option,
+.ant-select-item-option-content {
+  font-family: 'RussianRail', sans-serif !important;
 }

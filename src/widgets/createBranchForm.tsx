@@ -1,43 +1,74 @@
-import { Form, Input, Button, Card } from "antd";
-import { useCreateBranch } from "../features/branch";
+import { Form, Input, Button, Modal, Select } from "antd";
+import { useCreateBranch, useBranchParents } from "../features/branch";
 import type { BranchRequest } from "../services/branch";
 
-export default function CreateBranchForm() {
+type CreateBranchFormProps = {
+  open: boolean;
+  onCancel: () => void;
+};
+
+export default function CreateBranchForm({
+  open,
+  onCancel,
+}: CreateBranchFormProps) {
   const [form] = Form.useForm();
   const { mutate: createBranch, isPending } = useCreateBranch();
+
+  const { data: parents = [] } = useBranchParents();
 
   const onFinish = (values: BranchRequest) => {
     createBranch(values);
     form.resetFields();
+    onCancel();
   };
 
   return (
-    <Card title="Создать филиал" style={{ maxWidth: 600, margin: "auto" }}>
-      <Form form={form} layout="vertical" onFinish={onFinish}>
-        <Form.Item label="Название" name="name" rules={[{ required: true }]}>
-          <Input />
-        </Form.Item>
+    <Modal
+      open={open}
+      onCancel={onCancel}
+      footer={null}
+      destroyOnHidden={true}
+      centered
+      width={300}
+    >
+      <div className="text-xl px-6 pt-6 pb-4 text-center">Создание филиала</div>
 
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={onFinish}
+        className="space-y-4 px-6 py-4 text-xl"
+      >
         <Form.Item
-          label="ID родителя"
-          name={["parent", "id"]}
-          rules={[{ required: false, type: "number" }]}
+          name="name"
+          rules={[{ required: true, message: "Введите название" }]}
         >
-          <Input type="number" placeholder="Опционально" />
+          <Input placeholder="Название" />
         </Form.Item>
 
-        <Form.Item
-          label="Название родителя"
-          name={["parent", "name"]}
-          rules={[{ required: false }]}
-        >
-          <Input placeholder="Опционально" />
+        <Form.Item name={["parent", "id"]}>
+          <Select
+            placeholder="Родительский филиал"
+            options={parents.map((parent) => ({
+              label: parent.name,
+              value: parent.id,
+            }))}
+            allowClear
+          />
         </Form.Item>
 
-        <Button type="primary" htmlType="submit" loading={isPending}>
-          Создать филиал
-        </Button>
+        <Form.Item className="mt-6">
+          <Button
+            className="!bg-red-600 !text-white !border-none"
+            type="primary"
+            htmlType="submit"
+            loading={isPending}
+            block
+          >
+            Сохранить
+          </Button>
+        </Form.Item>
       </Form>
-    </Card>
+    </Modal>
   );
 }
