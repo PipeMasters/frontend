@@ -11,6 +11,7 @@
     "gen:routes": "router-gen --watch"
   },
   "dependencies": {
+    "@ant-design/v5-patch-for-react-19": "^1.0.3",
     "@tailwindcss/vite": "^4.1.10",
     "@tanstack/react-query": "^5.81.2",
     "@tanstack/react-router": "^1.121.27",
