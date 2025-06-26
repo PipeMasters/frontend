@@ -1,4 +1,5 @@
-import { Form, Input, Button, Modal, Select } from "antd";
+import { Form, Input, Button, Modal, Select, Checkbox } from "antd";
+import { useState } from "react";
 import { useCreateBranch, useBranchParents } from "../features/branch";
 import type { BranchRequest } from "../services/branch";
 
@@ -13,12 +14,17 @@ export default function CreateBranchForm({
 }: CreateBranchFormProps) {
   const [form] = Form.useForm();
   const { mutate: createBranch, isPending } = useCreateBranch();
-
   const { data: parents = [] } = useBranchParents();
 
+  const [hasParent, setHasParent] = useState(false);
+
   const onFinish = (values: BranchRequest) => {
+    if (!hasParent) {
+      delete values.parent;
+    }
     createBranch(values);
     form.resetFields();
+    setHasParent(false);
     onCancel();
   };
 
@@ -46,16 +52,32 @@ export default function CreateBranchForm({
           <Input placeholder="Название" />
         </Form.Item>
 
-        <Form.Item name={["parent", "id"]}>
-          <Select
-            placeholder="Родительский филиал"
-            options={parents.map((parent) => ({
-              label: parent.name,
-              value: parent.id,
-            }))}
-            allowClear
-          />
+        <Form.Item>
+          <Checkbox
+            checked={hasParent}
+            onChange={(e) => setHasParent(e.target.checked)}
+          >
+            Выбрать родительский филиал
+          </Checkbox>
         </Form.Item>
+
+        {hasParent && (
+          <Form.Item
+            name={["parent", "id"]}
+            rules={[
+              { required: true, message: "Выберите родительский филиал" },
+            ]}
+          >
+            <Select
+              placeholder="Родительский филиал"
+              options={parents.map((parent) => ({
+                label: parent.name,
+                value: parent.id,
+              }))}
+              allowClear
+            />
+          </Form.Item>
+        )}
 
         <Form.Item className="mt-6">
           <Button

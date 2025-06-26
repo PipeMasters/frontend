@@ -36,3 +36,9 @@ body{
 .ant-select-item-option-content {
   font-family: 'RussianRail', sans-serif !important;
 }
+
+.ant-checkbox-wrapper,
+.ant-checkbox,
+.ant-checkbox + span {
+  font-family: 'RussianRail', sans-serif !important;
+}
