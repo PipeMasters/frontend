@@ -42,3 +42,7 @@ body{
 .ant-checkbox + span {
   font-family: 'RussianRail', sans-serif !important;
 }
+
+.ant-notification-notice {
+  font-family: 'RussianRail', sans-serif !important;
+}

@@ -1,4 +1,5 @@
 import { Button, Form, Input, Modal } from "antd";
+import { notification } from "antd";
 import { useCreateTrain } from "../features/train";
 import type { TrainResponse } from "../services/train";
 
@@ -14,10 +15,30 @@ export default function CreateTrainForm({
   const [form] = Form.useForm();
   const { mutate: createTrain, isPending } = useCreateTrain();
 
+  const openSuccessNotification = () => {
+    notification.success({
+      message: "Поезд успешно создан",
+      duration: 3,
+    });
+  };
+
+  const openErrorNotification = () => {
+    notification.error({
+      message: "Произошла ошибка при создании поезда",
+      duration: 3,
+    });
+  };
+
   const onFinish = (values: TrainResponse) => {
-    createTrain(values);
-    form.resetFields();
-    onCancel();
+    createTrain(values, {
+      onSuccess: () => {
+        openSuccessNotification(), form.resetFields();
+        onCancel();
+      },
+      onError: () => {
+        openErrorNotification();
+      },
+    });
   };
 
   return (

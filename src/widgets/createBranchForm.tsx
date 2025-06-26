@@ -1,4 +1,5 @@
 import { Form, Input, Button, Modal, Select, Checkbox } from "antd";
+import { notification } from "antd";
 import { useState } from "react";
 import { useCreateBranch, useBranchParents } from "../features/branch";
 import type { BranchRequest } from "../services/branch";
@@ -15,17 +16,39 @@ export default function CreateBranchForm({
   const [form] = Form.useForm();
   const { mutate: createBranch, isPending } = useCreateBranch();
   const { data: parents = [] } = useBranchParents();
-
   const [hasParent, setHasParent] = useState(false);
+
+  const openSuccessNotification = () => {
+    notification.success({
+      message: "Филиал успешно создан",
+      duration: 3,
+    });
+  };
+
+  const openErrorNotification = () => {
+    notification.error({
+      message: "Произошла ошибка при создании филиала",
+      duration: 3,
+    });
+  };
 
   const onFinish = (values: BranchRequest) => {
     if (!hasParent) {
       delete values.parent;
     }
-    createBranch(values);
-    form.resetFields();
-    setHasParent(false);
-    onCancel();
+
+
+    createBranch(values, {
+      onSuccess: () => {
+        openSuccessNotification();
+        form.resetFields();
+        setHasParent(false);
+        onCancel();
+      },
+      onError: () => {
+        openErrorNotification();
+      },
+    });
   };
 
   return (
