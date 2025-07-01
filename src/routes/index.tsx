@@ -34,9 +34,9 @@ function RouteComponent() {
   if (isLoading) {
     return <div>Загрузка...</div>;
   }
-  return <MainPage/>;
+  // return <MainPage/>;
 
-//   //   return <CreateTrainForm/>;
+  //   return <CreateTrainForm/>;
 
 //     return <CreateBranchForm/>;
 // //   return (
