@@ -9,3 +9,8 @@ export interface BranchParent {
   name: string;
 }
 
+export interface BranchResponse {
+  id: number;
+  name: string;
+  parentId: number;
+}
