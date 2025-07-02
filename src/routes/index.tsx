@@ -26,7 +26,7 @@ function RouteComponent() {
   }
  
   return (
-    <div className="flex p-4 gap-">
+    <div className="flex p-4 gap-10">
     
       <div className="flex flex-col w-72 space-y-4">
         <FilterCard />
