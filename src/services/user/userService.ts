@@ -6,7 +6,7 @@ export const getUser = async (id: number): Promise<UserResponse> => {
   return response.data;
 };
 
-export const fetchUsers = async (): Promise<UserResponse[]> => {
+export const getUsers = async (): Promise<UserResponse[]> => {
   const response = await client.get<UserResponse[]>("/users");
   return response.data;
 };

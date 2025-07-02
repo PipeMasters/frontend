@@ -60,7 +60,7 @@ export default function FilterCard() {
 
           <Form.Item name="employee">
             <Select placeholder="Работник" allowClear>
-              {workers.map((user) => (
+              {workers?.map((user) => (
                 <Option key={user.id} value={user.id}>
                   {user.surname} {user.name}
                 </Option>
@@ -70,7 +70,7 @@ export default function FilterCard() {
 
           <Form.Item name="supervisor">
             <Select placeholder="Начальник" allowClear>
-              {chief.map((user) => (
+              {chief?.map((user) => (
                 <Option key={user.id} value={user.id}>
                   {user.surname} {user.name}
                 </Option>

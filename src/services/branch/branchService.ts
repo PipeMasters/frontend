@@ -6,7 +6,7 @@ export const createBranch = async (branchData: BranchRequest): Promise<BranchReq
   return response.data;
 };
 
-export const fetchBranchParents = async (): Promise<BranchParent[]> => {
+export const getBranchParents = async (): Promise<BranchParent[]> => {
   const response = await client.get("/branch/parents");
   return response.data;
 };
