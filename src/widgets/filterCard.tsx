@@ -14,10 +14,8 @@ export default function FilterCard() {
   const { data: trains} = useGetTrains();
   const { data: branches} = useGetBranches();
 
-  const workers =
-    users?.filter((user) => user.roles.includes(RoleEnum.USER)) ?? [];
-  const chief =
-    users?.filter((user) => user.roles.includes(RoleEnum.BRANCH_ADMIN)) ?? [];
+  const workers = users?.filter((user) => user.roles.includes(RoleEnum.USER));
+  const chief = users?.filter((user) => user.roles.includes(RoleEnum.BRANCH_ADMIN));
 
   const onFinish = (values: any) => {
     console.log("Фильтр применён:", values);
