@@ -2,25 +2,15 @@ import { createFileRoute } from "@tanstack/react-router";
 // import FilterCard from "../widgets/filterCard";
 // import { Card, Col, Row, Table } from "antd";
 // import { Select } from "antd";
-import axios from "axios";
+// import axios from "axios";
 // import { useQuery } from "@tanstack/react-query";
 import { DatePicker } from "antd";
 import { useGetUser } from "../features/user";
 import { useGetTrains } from "../features/train";
 import ModalButton from "../widgets/modalButton";
-import TrainTable from "../widgets/trainTable";
-import CreateTrainForm from "../widgets/createTrainForm";
-import CreateBranchForm from "../widgets/createBranchForm";
-import UploadFileForm from "../widgets/uploadFileForm";
+import BatchVideo  from "../widgets/batchVideo";
+import FilterCard from "../widgets/filterCard";
 
-export const MainPage: React.FC = () => {
-  return (
-    <div style={{ display: 'flex', gap: '1rem' }}>
-      <ModalButton buttonText="Добавить поезд" type='train' />
-      <ModalButton buttonText="Добавить филиал" type="branch"/>
-    </div>
-  );
-};
 const { RangePicker } = DatePicker;
 
 export const Route = createFileRoute("/")({
@@ -34,21 +24,21 @@ function RouteComponent() {
   if (isLoading) {
     return <div>Загрузка...</div>;
   }
-  return <MainPage/>;
+ 
+  return (
+    <div className="flex p-4 gap-10">
+    
+      <div className="flex flex-col w-72 space-y-4">
+        <FilterCard />
+        <ModalButton buttonText="Добавить поезд" type="train" />
+        <ModalButton buttonText="Добавить филиал" type="branch" />
+      </div>
 
-  //   return <CreateTrainForm/>;
+    
+      <div className="flex-1">
+        <BatchVideo/>
+      </div>
+    </div>
+  );
+};
 
-//     return <CreateBranchForm/>;
-// //   return (
-// //     <div className="p-4">
-// //       <strong>{user?.name}</strong>
-// //     </div>
-// //   );
-  // return <CreateBranchForm/>;
-  // return <UploadFileForm />;
-  //   return (
-  //     <div className="p-4">
-  //       <strong>{user?.name}</strong>
-  //     </div>
-  //   );
-}

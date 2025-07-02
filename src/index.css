@@ -46,3 +46,17 @@ body{
 .ant-notification-notice {
   font-family: 'RussianRail', sans-serif !important;
 }
+
+.ant-picker,
+.ant-picker-input,
+.ant-picker-input > input,
+.ant-picker-dropdown,
+.ant-picker-panel,
+.ant-picker-cell-inner {
+  font-family: 'RussianRail', sans-serif !important;
+}
+
+.ant-list,
+.ant-list-item {
+  font-family: 'RussianRail', sans-serif !important;
+}
