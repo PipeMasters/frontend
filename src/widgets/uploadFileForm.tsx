@@ -15,48 +15,47 @@ export default function UploadFileForm() {
   const [activeUploads, setActiveUploads] = useState<number>(0);
 
   const onFinish = async (values: any) => {
-  const { filenameTemplate, uploadBatchId, startIndex } = values;
+    const { filenameTemplate, uploadBatchId, startIndex } = values;
 
-  if (!files.length) {
-    notification.error({ message: "Ошибка", description: "Выберите файлы" });
-    return;
-  }
+    if (!files.length) {
+      notification.error({ message: "Ошибка", description: "Выберите файлы" });
+      return;
+    }
 
-  if (files.length > MAX_FILES) {
-    notification.warning({
-      message: "Много файлов",
-      description: `Можно загружать не более ${MAX_FILES} файлов за раз.`,
-    });
-    return;
-  }
+    if (files.length > MAX_FILES) {
+      notification.warning({
+        message: "Много файлов",
+        description: `Можно загружать не более ${MAX_FILES} файлов за раз.`,
+      });
+      return;
+    }
 
-  setActiveUploads(files.length);
+    setActiveUploads(files.length);
 
-  const startIdx = Number(startIndex) || 0;
+    const startIdx = Number(startIndex) || 0;
 
-  const uploadPromises = files.map((file, i) => {
-    const originalName = file.name;
-    const ext = originalName.split(".").pop()?.toLowerCase() || "";
-    const guessedType = FILE_TYPE_MAP[ext] || FileType.OTHER;
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const originalName = file.name;
+        const ext = originalName.split(".").pop()?.toLowerCase() || "";
+        const guessedType = FILE_TYPE_MAP[ext] || FileType.OTHER;
 
-    const filename = `${filenameTemplate.replace("{{index}}", (startIdx + i).toString())}.${ext}`;
+        const index = startIdx + i;
+        const filename = `${filenameTemplate.replace("{{index}}", index.toString())}.${ext}`;
 
-    const key = `upload-${originalName}-${Math.random().toString(36).substring(7)}`;
+        const key = `upload-${originalName}-${Math.random().toString(36).substring(7)}`;
 
-    notification.info({
-      key,
-      message: `Загрузка: ${originalName}`,
-      description: <Progress percent={0} />,
-      duration: 0,
-    });
+        notification.info({
+          key,
+          message: `Загрузка: ${originalName}`,
+          description: <Progress percent={0} />,
+          duration: 0,
+        });
 
-    return new Promise<void>(async (resolve, reject) => {
-      const attemptUpload = async (attemptIndex: number) => {
         try {
-          const finalFilename = `${filenameTemplate.replace("{{index}}", attemptIndex.toString())}.${ext}`;
-
           const presignedUrl = await uploadFile({
-            filename: finalFilename,
+            filename,
             fileType: guessedType,
             uploadBatchId,
           });
@@ -68,11 +67,9 @@ export default function UploadFileForm() {
           notification.success({
             key,
             message: `Файл ${originalName} загружен`,
-            description: `Имя файла: ${finalFilename}`,
+            description: `Имя файла: ${filename}`,
             duration: 3,
           });
-
-          resolve();
         } catch (error: any) {
           const status = error?.response?.status;
 
@@ -81,13 +78,10 @@ export default function UploadFileForm() {
               key,
               message: `Файл "${filename}" уже существует`,
               description: (
-                <>
-                  <p>Файл "{originalName}" не загружен из-за конфликта имён.</p>
-                </>
+                <p>Файл "{originalName}" не загружен из-за конфликта имён.</p>
               ),
-              duration: 0,
+              duration: 3,
             });
-            reject(new Error("Конфликт имён"));
           } else {
             notification.error({
               key,
@@ -95,26 +89,20 @@ export default function UploadFileForm() {
               description: error.message,
               duration: 3,
             });
-            reject(error);
           }
+          throw error;
         }
-      };
+      }
 
-      attemptUpload(startIdx + i);
-    });
-  });
-
-  try {
-    await Promise.all(uploadPromises);
-    notification.success({ message: "Все файлы успешно загружены" });
-  } catch (error) {
-    notification.error({ message: "Не все файлы загружены" });
-  } finally {
-    form.resetFields();
-    setFiles([]);
-    setActiveUploads(0);
-  }
-};
+      notification.success({ message: "Все файлы успешно загружены" });
+    } catch (error) {
+      notification.error({ message: "Не все файлы загружены" });
+    } finally {
+      form.resetFields();
+      setFiles([]);
+      setActiveUploads(0);
+    }
+  };
 
   const setProgress = (
     key: string,
