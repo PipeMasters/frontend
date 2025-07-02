@@ -23,6 +23,9 @@ export default function ModalButton ({ buttonText, type }: ModalButtonProps) {
         case 'branch':
             ModalComponent = <CreateBranchForm open={isOpen} onCancel={handleClose} />;
             break;
+        case 'file':
+            ModalComponent = <CreateBranchForm open={isOpen} onCancel={handleClose} />;
+            break;
         default:
             ModalComponent = null;
     }
