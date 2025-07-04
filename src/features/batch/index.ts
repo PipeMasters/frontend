@@ -1,1 +1,2 @@
-export * from './useBatchVideo';
+export * from "./useBatchVideo";
+export * from "./useGetBatchById";
