@@ -4,6 +4,6 @@ import type { BranchResponse } from "../../services/branch/model";
 
 export const useGetBranches = () =>
   useQuery<BranchResponse[]>({
-    queryKey: ["branches"],
+    queryKey: ["branches", "parents"],
     queryFn: getBranches,
   });

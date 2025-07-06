@@ -3,7 +3,7 @@ import { getBatchVideos } from "../../services/batch";
 
 export const useBatchVideo = () => {
   return useQuery({
-    queryKey: ["batchVideos"],
-    queryFn: getBatchVideos
+    queryKey: ["batch"],
+    queryFn: getBatchVideos,
   });
 };

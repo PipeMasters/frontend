@@ -5,9 +5,8 @@ export const useCreateBranch = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createBranch,
-     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["branches"] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["branches", "parents"] });
     },
   });
 };
-

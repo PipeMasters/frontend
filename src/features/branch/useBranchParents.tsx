@@ -3,7 +3,7 @@ import { getBranchParents } from "../../services/branch";
 
 export const useBranchParents = () => {
   return useQuery({
-    queryKey: ["branch", "parents"],
+    queryKey: ["branches", "parents"],
     queryFn: getBranchParents,
   });
 };
