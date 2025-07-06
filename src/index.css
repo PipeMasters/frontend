@@ -1,10 +1,12 @@
 @import "tailwindcss";
 body{
-  font-family: 'RussianRail', sans-serif;
+  font-family: 'RussianRail', sans-serif !important;
   margin: 0;
   padding: 0;
 }
-
+*{
+  font-family: 'RussianRail', sans-serif !important;
+}
 
 @font-face {
   font-family: 'RussianRail';
@@ -14,49 +16,5 @@ body{
 }
 
 .ant-modal {
-  font-family: 'RussianRail', sans-serif !important;
   font-size: 20px;
-}
-
-.ant-form, 
-.ant-form-item, 
-.ant-form-item-label, 
-.ant-form-item-explain, 
-.ant-input, 
-.ant-btn {
-  font-family: 'RussianRail', sans-serif !important;
-}
-
-.ant-select,
-.ant-select-selector,
-.ant-select-selection-item,
-.ant-select-selection-placeholder,
-.ant-select-dropdown,
-.ant-select-item-option,
-.ant-select-item-option-content {
-  font-family: 'RussianRail', sans-serif !important;
-}
-
-.ant-checkbox-wrapper,
-.ant-checkbox,
-.ant-checkbox + span {
-  font-family: 'RussianRail', sans-serif !important;
-}
-
-.ant-notification-notice {
-  font-family: 'RussianRail', sans-serif !important;
-}
-
-.ant-picker,
-.ant-picker-input,
-.ant-picker-input > input,
-.ant-picker-dropdown,
-.ant-picker-panel,
-.ant-picker-cell-inner {
-  font-family: 'RussianRail', sans-serif !important;
-}
-
-.ant-list,
-.ant-list-item {
-  font-family: 'RussianRail', sans-serif !important;
 }
