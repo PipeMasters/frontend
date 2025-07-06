@@ -1,5 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Button, Card, Table, Space, Col, Row } from "antd";
+import { Button, Card, Table, Space, Col, Row, Tag } from "antd";
+import { useGetBatch } from "../../features/batch";
+import { useGetTrain } from "../../features/train";
+import { getCauseLabel } from "../../services/batch";
 
 export const Route = createFileRoute("/overview/$fileId")({
   component: OverviewComponent,
@@ -7,16 +10,98 @@ export const Route = createFileRoute("/overview/$fileId")({
 
 function OverviewComponent() {
   const { fileId } = Route.useParams();
-  const videoUrl = "https://example.com/video.mp4 "; // URL вашего видео
 
-  const trainDetails = {
-    departureDate: "14.07.2025",
-    arrivalDate: "15.07.2025",
-    trainNumber: "148",
-    chiefName: "Михайлов М.М.",
-    workerName: "Михайлов М.М.",
-  };
+  const { data: batch, isLoading, isError } = useGetBatch(parseInt(fileId));
+  const trainId = batch?.trainId;
+  const trainQuery = useGetTrain(trainId ?? 1);
+  const train = trainQuery.data;
 
+  if (isLoading) {
+    return <div>Загрузка...</div>;
+  }
+
+  if (isError || !batch) {
+    return <div>Ошибка загрузки</div>;
+  }
+
+  const videoUrl = "https://example.com/video.mp4 ";
+
+  const tableData = [
+    {
+      key: "directory",
+      label: "Папка загрузки",
+      value: batch.directory,
+    },
+    {
+      key: "createdAt",
+      label: "Дата создания",
+      value: new Date(batch.createdAt).toLocaleString(),
+    },
+    {
+      key: "trainDeparted",
+      label: "Дата отправления поезда",
+      value: batch.trainDeparted,
+    },
+    {
+      key: "trainArrived",
+      label: "Дата прибытия поезда",
+      value: batch.trainArrived,
+    },
+    {
+      key: "trainId",
+      label: "Номер поезда",
+      value: train?.trainNumber,
+    },
+    {
+      key: "chief",
+      label: "Начальник",
+      value:
+        batch.chief.name +
+        " " +
+        batch.chief.surname +
+        " " +
+        batch.chief.patronymic,
+    },
+    {
+      key: "uploadedBy",
+      label: "Работник",
+      value:
+        batch.uploadedBy.name +
+        " " +
+        batch.uploadedBy.surname +
+        " " +
+        batch.uploadedBy.patronymic,
+    },
+    {
+      key: "comment",
+      label: "Комментарий",
+      value: batch.comment || "—",
+    },
+    {
+      key: "keywords",
+      label: "Ключевые слова",
+      value: batch.keywords?.length
+        ? batch.keywords.map((kw) => <Tag key={kw}>{kw}</Tag>)
+        : "—",
+    },
+    {
+      key: "archived",
+      label: "Архивировано",
+      value: batch.archived ? "Да" : "Нет",
+    },
+    {
+      key: "deleted",
+      label: "Удалено",
+      value: batch.deleted ? "Да" : "Нет",
+    },
+    {
+      key: "absence",
+      label: "Причина отсутствия видео",
+      value: batch.absence
+        ? `${getCauseLabel(batch.absence.cause)}: ${batch.absence.comment}`
+        : "—",
+    },
+  ];
   const attachedFiles = [
     { name: "file1.mp4", duration: "1:23" },
     { name: "file2.mp4", duration: "2:45" },
@@ -44,45 +129,24 @@ function OverviewComponent() {
       </Button>
 
       <div className="flex flex-col">
-        <Card title="Подробная информация" className="">
+        <Card title="Подробная информация о партии">
           <Table
-            dataSource={[
-              {
-                key: "departureDate",
-                label: "Дата отправления:",
-                value: trainDetails.departureDate,
-              },
-              {
-                key: "arrivalDate",
-                label: "Дата прибытия:",
-                value: trainDetails.arrivalDate,
-              },
-              {
-                key: "trainNumber",
-                label: "Номер поезда:",
-                value: trainDetails.trainNumber,
-              },
-              {
-                key: "chiefName",
-                label: "ФИО начальника:",
-                value: trainDetails.chiefName,
-              },
-              {
-                key: "workerName",
-                label: "ФИО работника:",
-                value: trainDetails.workerName,
-              },
-            ]}
+            size="small"
+            dataSource={tableData}
+            showHeader={false}
             columns={[
               {
                 title: "",
                 dataIndex: "label",
                 key: "label",
+                width: 200,
+                render: (text) => <span className="font-bold">{text}</span>,
               },
               {
                 title: "",
                 dataIndex: "value",
                 key: "value",
+                render: (value) => (typeof value === "string" ? value : value),
               },
             ]}
             pagination={false}
