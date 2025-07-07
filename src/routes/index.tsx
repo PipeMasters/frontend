@@ -32,6 +32,7 @@ function RouteComponent() {
         <FilterCard />
         <ModalButton buttonText="Добавить поезд" type="train" />
         <ModalButton buttonText="Добавить филиал" type="branch" />
+        <ModalButton buttonText="Добавить запись" type="batch" />
       </div>
 
     

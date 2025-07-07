@@ -24,10 +24,10 @@ export interface AbsenseInBatch {
 }
 
 export enum Cause {
-  DEVICE_FAILURE,
-  REGULATORY_EXEMPT,
-  HUMAN_FACTOR,
-  OTHER,
+  DEVICE_FAILURE = "DEVICE_FAILURE",
+  REGULATORY_EXEMPT = "REGULATORY_EXEMPT",
+  HUMAN_FACTOR = "HUMAN_FACTOR",
+  OTHER = "OTHER"
 }
 
 export const getCauseLabel = (cause: Cause): string => {
@@ -62,4 +62,17 @@ export interface BatchResponse {
   deleted: boolean;
   file: FileInBatch[];
   absence: AbsenseInBatch;
+}
+
+export interface BatchRequest {
+  uploadedById: number; 
+  trainDeparted: string; 
+  trainArrived: string;  
+  trainId: number;
+  comment: string;
+  branchId: number;
+  absence?: {
+  cause: string;
+  comment: string;
+  };
 }

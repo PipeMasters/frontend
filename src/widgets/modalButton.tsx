@@ -2,11 +2,12 @@ import React, {useState} from "react";
 import { Button } from "antd";
 import CreateTrainForm from "./createTrainForm";
 import CreateBranchForm  from "./createBranchForm";
+import CreateBatchForm from "./createBatchForm";
 
 
 type ModalButtonProps = {
     buttonText: string;
-    type: 'train' | 'branch' | 'file';
+    type: 'train' | 'branch' | 'batch';
 };
 
 export default function ModalButton ({ buttonText, type }: ModalButtonProps) {
@@ -23,8 +24,8 @@ export default function ModalButton ({ buttonText, type }: ModalButtonProps) {
         case 'branch':
             ModalComponent = <CreateBranchForm open={isOpen} onCancel={handleClose} />;
             break;
-        case 'file':
-            ModalComponent = <CreateBranchForm open={isOpen} onCancel={handleClose} />;
+        case 'batch':
+            ModalComponent = <CreateBatchForm open={isOpen} onCancel={handleClose} />;
             break;
         default:
             ModalComponent = null;
