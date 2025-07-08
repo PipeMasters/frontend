@@ -71,8 +71,5 @@ export interface BatchRequest {
   trainId: number;
   comment: string;
   branchId: number;
-  absence?: {
-  cause: string;
-  comment: string;
-  };
+  absence: AbsenseInBatch;
 }
