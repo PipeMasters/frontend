@@ -18,9 +18,9 @@ export interface FileInBatch {
 }
 
 export interface AbsenseInBatch {
-  id: number;
+  id?: number;
   cause: Cause;
-  comment: "string";
+  comment: string;
 }
 
 export enum Cause {
@@ -71,5 +71,5 @@ export interface BatchRequest {
   trainId: number;
   comment: string;
   branchId: number;
-  absence: AbsenseInBatch;
+  absence?: AbsenseInBatch;
 }

@@ -1,7 +1,8 @@
   export interface TrainResponse {
-    id: number;
+    id?: number;
     trainNumber: number;
     routeMessage: string;
     consistCount: number;
-    chief: string;
+    chiefId: number;
+    branchId: number;
   }
