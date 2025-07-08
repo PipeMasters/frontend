@@ -60,6 +60,6 @@ export interface BatchResponse {
   archived: boolean;
   deletedAt: string;
   deleted: boolean;
-  file: FileInBatch[];
+  files: FileInBatch[];
   absence: AbsenseInBatch;
 }
