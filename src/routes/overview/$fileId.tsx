@@ -5,6 +5,7 @@ import { useGetTrain } from "../../features/train";
 import { getCauseLabel } from "../../services/batch";
 import { useGetFileUrls } from "../../features/file";
 import { FILE_TYPE_MAP, FileType } from "../../services/file";
+import UploadFileForm from "../../widgets/uploadFileForm";
 
 export const Route = createFileRoute("/overview/$fileId")({
   component: OverviewComponent,
@@ -111,17 +112,15 @@ function OverviewComponent() {
 
   return (
     <div className="flex flex-col p-10 pt-0 gap-8">
-      <div className="flex justify-center pt-3">
+      {/* <div className="flex justify-center pt-3">
         <video controls style={{ width: "100%", maxWidth: "1000px" }}>
           <source src={videoUrl} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
-      </div>
-      <Button className="!bg-red-600 !text-white !border-none !w-fit" block>
-        Прикрепить файл
-      </Button>
+      </div> */}
+    
 
-      <div className="flex flex-col">
+      <div className="flex flex-col pt-4">
         <Card title="Подробная информация о партии">
           <Table
             size="small"
@@ -146,7 +145,9 @@ function OverviewComponent() {
           />
         </Card>
       </div>
-
+  <div className="flex flex-col">
+        <UploadFileForm fileId={parseInt(fileId)} />
+      </div>
       <Card title="Прикрепленные файлы">
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-2">Видео</h3>
@@ -229,6 +230,46 @@ function OverviewComponent() {
           </Row>
         </div>
         <div className="mb-6">
+          <h3 className="text-lg font-semibold mb-2">Изображения</h3>
+          <Row gutter={[24, 24]}>
+            {fileQueries.map((query, index) => {
+              const file = batch.files[index];
+              const ext =
+                file.filename.split(".").pop()?.toLowerCase() || "other";
+              const fileType = FILE_TYPE_MAP[ext];
+
+              if (query.isLoading) return null;
+              if (query.isError) return null;
+
+              if (fileType === FileType.IMAGE) {
+                const url = query.data;
+                return (
+                  <Col key={file.id} xs={24} sm={12} md={8} lg={6}>
+                    <div className="p-3 bg-white shadow rounded flex flex-col">
+                      <img
+                        src={url}
+                        alt={file.filename}
+                        className="w-full h-40 object-contain mb-2"
+                      />
+                      <span className="truncate">{file.filename}</span>
+                      <a
+                        href={url}
+                        download
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 block text-center text-blue-500 hover:text-blue-700"
+                      >
+                        Скачать
+                      </a>
+                    </div>
+                  </Col>
+                );
+              }
+              return null;
+            })}
+          </Row>
+        </div>
+        <div className="mb-6">
           <h3 className="text-lg font-semibold mb-2">Документы</h3>
           <Row gutter={[24, 24]}>
             {fileQueries.map((query, index) => {
@@ -264,6 +305,7 @@ function OverviewComponent() {
             })}
           </Row>
         </div>
+
         <div>
           <h3 className="text-lg font-semibold mb-2">Прочие файлы</h3>
           <Row gutter={[24, 24]}>
@@ -279,6 +321,7 @@ function OverviewComponent() {
               if (
                 fileType !== FileType.VIDEO &&
                 fileType !== FileType.AUDIO &&
+                fileType !== FileType.IMAGE &&
                 fileType !== FileType.DOCUMENT
               ) {
                 const url = query.data;

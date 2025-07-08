@@ -7,9 +7,9 @@ export const useUploadFile = (batchId?: number) => {
     mutationFn: uploadFile,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["files"] });
-      // queryClient.invalidateQueries({
-      //   queryKey: ["batch", batchId],
-      // });
+      queryClient.invalidateQueries({
+        queryKey: ["batch", batchId],
+      });
     },
   });
 

@@ -1,21 +1,27 @@
 import { useState } from "react";
-import { Form, Input, Button, Card, Upload, Progress } from "antd";
+import {
+  Form,
+  Input,
+  Button,
+  Card,
+  Upload,
+  Progress,
+  notification,
+} from "antd";
 import { useUploadFile } from "../features/file/useUploadFile";
 import { FileType, FILE_TYPE_MAP } from "../services/file/model";
-import { notification } from "antd";
-import { uploadFile, uploadToPresignedUrl } from "../services/file";
+import { uploadToPresignedUrl } from "../services/file";
 
-export default function UploadFileForm() {
+export default function UploadFileForm({ fileId }: { fileId: number }) {
   const [form] = Form.useForm();
-  const { isPending } = useUploadFile();
+  const { getPresignedUrlAsync, isPending } = useUploadFile(fileId);
 
   const MAX_FILES = 5;
-
   const [files, setFiles] = useState<File[]>([]);
   const [activeUploads, setActiveUploads] = useState<number>(0);
 
   const onFinish = async (values: any) => {
-    const { filenameTemplate, uploadBatchId, startIndex } = values;
+    const { filenameTemplate, startIndex = 1 } = values;
 
     if (!files.length) {
       notification.error({ message: "Ошибка", description: "Выберите файлы" });
@@ -31,8 +37,7 @@ export default function UploadFileForm() {
     }
 
     setActiveUploads(files.length);
-
-    const startIdx = Number(startIndex) || 0;
+    const startIdx = Number(startIndex) || 1;
 
     try {
       for (let i = 0; i < files.length; i++) {
@@ -54,10 +59,10 @@ export default function UploadFileForm() {
         });
 
         try {
-          const presignedUrl = await uploadFile({
+          const presignedUrl = await getPresignedUrlAsync({
             filename,
             fileType: guessedType,
-            uploadBatchId,
+            uploadBatchId: fileId, // Используем fileId из пропсов
           });
 
           await uploadToPresignedUrl(presignedUrl, file, (progress) => {
@@ -77,9 +82,7 @@ export default function UploadFileForm() {
             notification.warning({
               key,
               message: `Файл "${filename}" уже существует`,
-              description: (
-                <p>Файл "{originalName}" не загружен из-за конфликта имён.</p>
-              ),
+              description: `Файл "${originalName}" не загружен из-за конфликта имён.`,
               duration: 3,
             });
           } else {
@@ -129,7 +132,7 @@ export default function UploadFileForm() {
   };
 
   return (
-    <Card title="Загрузить файл" className="max-w-md mx-auto">
+    <Card title="Загрузить файл" className="max-w-md">
       <Form form={form} layout="vertical" onFinish={onFinish}>
         <Form.Item label="Выберите файлы (до 5)">
           <div className="flex flex-col gap-2 mb-4">
@@ -168,25 +171,17 @@ export default function UploadFileForm() {
         <Form.Item
           label="Начальный индекс"
           name="startIndex"
-          rules={[{ required: true, min: 0 }]}
-          initialValue={0}
+          rules={[{ required: true}]}
+          initialValue="1"
         >
-          <Input type="number" />
-        </Form.Item>
-        <Form.Item
-          label="Batch ID"
-          name="uploadBatchId"
-          rules={[{ required: true }]}
-        >
-          <Input type="number" />
+          <Input type="number" placeholder="1" />
         </Form.Item>
         <Form.Item>
           <Button
-            type="primary"
             htmlType="submit"
             disabled={isPending || activeUploads >= MAX_FILES}
             loading={isPending || activeUploads > 0}
-            className="w-full mt-4"
+             className="!bg-red-600 !text-white !border-none w-full"
           >
             {isPending || activeUploads > 0
               ? `${activeUploads} файлов в очереди...`
