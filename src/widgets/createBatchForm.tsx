@@ -1,4 +1,5 @@
-import { Form, Input, Button, Modal, Select, Checkbox, DatePicker, notification, } from "antd";
+import { Form, Input, Button, Modal, Select, Checkbox, DatePicker } from "antd";
+import { notification } from "antd";
 import { useState } from "react";
 import { useCreateBatch } from "../features/batch";
 import type { BatchRequest } from "../services/batch";
@@ -19,7 +20,6 @@ export default function CreateBatchForm({
   const [form] = Form.useForm();
   const { mutate: createBatch, isPending } = useCreateBatch();
   const [noVideo, setNoVideo] = useState(false);
-
   const { data: trains } = useGetTrains();
   const { data: branches } = useGetBranches();
 
@@ -72,29 +72,33 @@ export default function CreateBatchForm({
       open={open}
       onCancel={onCancel}
       footer={null}
-      title="Создание батча"
+      centered
       destroyOnHidden={true}
     >
-      <Form form={form} layout="vertical" onFinish={onFinish}>
+      <div className="text-xl px-6 pt-6 pb-4 text-center">Создание записи</div>
+
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={onFinish}
+        className="space-y-4 px-6 py-4 text-xl"
+      >
         <Form.Item
           name="trainDeparted"
-          label="Дата отправления"
           rules={[{ required: true, message: "Выберите дату отправления" }]}
         >
-          <DatePicker className="w-full" />
+          <DatePicker placeholder="Дата отправления" className="w-full" />
         </Form.Item>
 
         <Form.Item
           name="trainArrived"
-          label="Дата прибытия"
           rules={[{ required: true, message: "Выберите дату прибытия" }]}
         >
-          <DatePicker className="w-full" />
+          <DatePicker placeholder="Дата прибытия" className="w-full" />
         </Form.Item>
 
         <Form.Item
           name="trainId"
-          label="Номер поезда"
           rules={[{ required: true, message: "Выберите поезд" }]}
         >
           <Select placeholder="Номер поезда" allowClear>
@@ -108,7 +112,6 @@ export default function CreateBatchForm({
 
         <Form.Item
           name="branchId"
-          label="Филиал"
           rules={[{ required: true, message: "Выберите филиал" }]}
         >
           <Select placeholder="Филиал" allowClear>
@@ -120,7 +123,7 @@ export default function CreateBatchForm({
           </Select>
         </Form.Item>
 
-        <Form.Item name="comment" label="Комментарий">
+        <Form.Item name="comment">
           <Input placeholder="Комментарий" allowClear />
         </Form.Item>
 
@@ -142,10 +145,10 @@ export default function CreateBatchForm({
             >
               <Select placeholder="Причина отсутствия" allowClear>
                 <Select.Option value={Cause.DEVICE_FAILURE}>
-                  Поломка оборудования
+                  Сбой устройства
                 </Select.Option>
                 <Select.Option value={Cause.REGULATORY_EXEMPT}>
-                  Непредвиденное обстоятельство
+                  Освобождение по регламенту
                 </Select.Option>
                 <Select.Option value={Cause.HUMAN_FACTOR}>
                   Человеческий фактор
@@ -154,21 +157,19 @@ export default function CreateBatchForm({
               </Select>
             </Form.Item>
 
-            <Form.Item
-              name={["absence", "comment"]}
-              label="Комментарий к отсутствию"
-            >
-              <Input placeholder="Комментарий" allowClear />
+            <Form.Item name={["absence", "comment"]}>
+              <Input placeholder="Подробности" allowClear />
             </Form.Item>
           </>
         )}
 
-        <Form.Item>
+        <Form.Item className="mt-6">
           <Button
+            className="!bg-red-600 !text-white !border-none"
             type="primary"
             htmlType="submit"
             loading={isPending}
-            className="w-full !bg-red-600 !border-none"
+            block
           >
             Сохранить
           </Button>
