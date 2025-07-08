@@ -1,7 +1,12 @@
-import { Button, Form, Input, Modal } from "antd";
+import { Button, Form, Input, Modal, Select } from "antd";
 import { notification } from "antd";
 import { useCreateTrain } from "../features/train";
+import { useGetBranches } from "../features/branch/useGetBranches";
 import type { TrainResponse } from "../services/train";
+import { RoleEnum } from "../services/user";
+import { useGetUsers } from "../features/user";
+
+const { Option } = Select;
 
 type CreateTrainFormProps = {
   open: boolean;
@@ -14,6 +19,11 @@ export default function CreateTrainForm({
 }: CreateTrainFormProps) {
   const [form] = Form.useForm();
   const { mutate: createTrain, isPending } = useCreateTrain();
+  const { data: branches } = useGetBranches();
+  const { data: users } = useGetUsers();
+  const chief = users?.filter((user) =>
+    user.roles.includes(RoleEnum.BRANCH_ADMIN)
+  );
 
   const openSuccessNotification = () => {
     notification.success({
@@ -29,17 +39,27 @@ export default function CreateTrainForm({
     });
   };
 
-  const onFinish = (values: TrainResponse) => {
-    createTrain(values, {
-      onSuccess: () => {
-        openSuccessNotification(), form.resetFields();
-        onCancel();
-      },
-      onError: () => {
-        openErrorNotification();
-      },
-    });
+  const onFinish = (values: any) => {
+  const payload: TrainResponse = {
+    trainNumber: Number(values.trainNumber),
+    routeMessage: values.routeMessage,
+    consistCount: Number(values.consistCount),
+    chiefId: Number(values.chiefId), 
+    branchId: Number(values.branchId),
   };
+
+  createTrain(payload, {
+    onSuccess: () => {
+      openSuccessNotification();
+      form.resetFields();
+      onCancel();
+    },
+    onError: () => {
+      openErrorNotification();
+    },
+  });
+};
+
 
   return (
     <Modal
@@ -71,11 +91,27 @@ export default function CreateTrainForm({
           <Input placeholder="Маршрут" />
         </Form.Item>
 
+        <Form.Item name="chiefId">
+          <Select placeholder="Начальник" allowClear>
+            {chief?.map((user) => (
+              <Option key={user.id} value={user.id}>
+                {user.surname} {user.name}
+              </Option>
+            ))}
+          </Select>
+        </Form.Item>
+
         <Form.Item
-          name="chief"
-          rules={[{ required: true, message: "Введите начальника поезда" }]}
+          name="branchId"
+          rules={[{ required: true, message: "Выберите филиал" }]}
         >
-          <Input placeholder="Начальник поезда" />
+          <Select placeholder="Филиал" allowClear>
+            {branches?.map((branch) => (
+              <Select.Option key={branch.id} value={branch.id}>
+                {branch.name}
+              </Select.Option>
+            ))}
+          </Select>
         </Form.Item>
 
         <Form.Item
