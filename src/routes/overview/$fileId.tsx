@@ -63,9 +63,9 @@ function OverviewComponent() {
       key: "chief",
       label: "Начальник",
       value:
-        batch.chief.name +
-        " " +
         batch.chief.surname +
+        " " +
+        batch.chief.name +
         " " +
         batch.chief.patronymic,
     },
@@ -73,9 +73,9 @@ function OverviewComponent() {
       key: "uploadedBy",
       label: "Работник",
       value:
-        batch.uploadedBy.name +
-        " " +
         batch.uploadedBy.surname +
+        " " +
+        batch.uploadedBy.name +
         " " +
         batch.uploadedBy.patronymic,
     },
