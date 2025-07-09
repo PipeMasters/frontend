@@ -1,8 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Button, Card, Table, Space, Col, Row, Tag } from "antd";
+import { Button, Card, Table, Space, Col, Row, Tag, Progress } from "antd";
 import { useGetBatch } from "../../features/batch";
 import { useGetTrain } from "../../features/train";
 import { getCauseLabel } from "../../services/batch";
+import { useGetFileUrls } from "../../features/file";
+import { FILE_TYPE_MAP, FileType } from "../../services/file";
+import UploadFileForm from "../../widgets/uploadFileForm";
 
 export const Route = createFileRoute("/overview/$fileId")({
   component: OverviewComponent,
@@ -16,15 +19,19 @@ function OverviewComponent() {
   const trainQuery = useGetTrain(trainId ?? 1);
   const train = trainQuery.data;
 
-  if (isLoading) {
+  const fileIds = batch?.files?.map((file) => file.id) ?? [];
+  const fileQueries = useGetFileUrls(fileIds);
+
+  if (isLoading || trainQuery.isLoading) {
     return <div>Загрузка...</div>;
   }
 
-  if (isError || !batch) {
+  if (isError || !batch || trainQuery.isError || !train) {
     return <div>Ошибка загрузки</div>;
   }
 
-  const videoUrl = "https://example.com/video.mp4 ";
+  const videoUrl =
+    "http://92.242.60.137:9000/dev-bucket/d8dbece3-cf14-441b-a877-8cb95f08ce73/file-3.mp4?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20250707T140502Z&X-Amz-SignedHeaders=host&X-Amz-Credential=spring%2F20250707%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Expires=600&X-Amz-Signature=c67eac6664b11e952865bfc3e6e31285df6cdd212550eb695a9206b4ee30dbe1";
 
   const tableData = [
     {
@@ -56,9 +63,9 @@ function OverviewComponent() {
       key: "chief",
       label: "Начальник",
       value:
-        batch.chief.name +
-        " " +
         batch.chief.surname +
+        " " +
+        batch.chief.name +
         " " +
         batch.chief.patronymic,
     },
@@ -66,9 +73,9 @@ function OverviewComponent() {
       key: "uploadedBy",
       label: "Работник",
       value:
-        batch.uploadedBy.name +
-        " " +
         batch.uploadedBy.surname +
+        " " +
+        batch.uploadedBy.name +
         " " +
         batch.uploadedBy.patronymic,
     },
@@ -102,33 +109,18 @@ function OverviewComponent() {
         : "—",
     },
   ];
-  const attachedFiles = [
-    { name: "file1.mp4", duration: "1:23" },
-    { name: "file2.mp4", duration: "2:45" },
-    { name: "file3.mp4", duration: "3:00" },
-    { name: "file4.mp4", duration: "4:15" },
-    { name: "file5.mp4", duration: "5:30" },
-    { name: "file6.mp4", duration: "6:45" },
-  ];
+
   return (
     <div className="flex flex-col p-10 pt-0 gap-8">
-      <div className="flex justify-center pt-3">
+      {/* <div className="flex justify-center pt-3">
         <video controls style={{ width: "100%", maxWidth: "1000px" }}>
           <source src={videoUrl} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
-      </div>
-      <Button
-        className="!bg-red-600 !text-white !border-none !w-fit"
-        // type="primary"
-        htmlType="submit"
-        // loading={isPending}
-        block
-      >
-        Прикрепить файл
-      </Button>
+      </div> */}
+    
 
-      <div className="flex flex-col">
+      <div className="flex flex-col pt-4">
         <Card title="Подробная информация о партии">
           <Table
             size="small"
@@ -153,25 +145,208 @@ function OverviewComponent() {
           />
         </Card>
       </div>
+  <div className="flex flex-col">
+        <UploadFileForm fileId={parseInt(fileId)} />
+      </div>
       <Card title="Прикрепленные файлы">
-        <Row gutter={16}>
-          {attachedFiles.map((file, index) => (
-            <Col key={index} xs={24} sm={12} md={8} lg={6}>
-              <div>
-                <video controls style={{ width: "100%" }}>
-                  <source
-                    src={`https://example.com/ ${file.name}`}
-                    type="video/mp4"
-                  />
-                  Your browser does not support the video tag.
-                </video>
-                <p>
-                  {file.name} ({file.duration})
-                </p>
-              </div>
-            </Col>
-          ))}
-        </Row>
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold mb-2">Видео</h3>
+          <Row gutter={[24, 24]}>
+            {fileQueries.map((query, index) => {
+              const file = batch.files[index];
+              const ext =
+                file.filename.split(".").pop()?.toLowerCase() || "other";
+              const fileType = FILE_TYPE_MAP[ext];
+
+              if (query.isLoading) return null;
+              if (query.isError) return null;
+
+              if (fileType === FileType.VIDEO) {
+                const url = query.data;
+                return (
+                  <Col key={file.id} xs={24} sm={12} md={8} lg={6}>
+                    <div className="p-3 bg-white shadow rounded">
+                      <video controls style={{ width: "100%" }}>
+                        <source src={url} type="video/mp4" />
+                        Your browser does not support the video tag.
+                      </video>
+                      <span>{file.filename}</span>
+                      <a
+                        href={url}
+                        download
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 block text-center text-blue-500 hover:text-blue-700"
+                      >
+                        Скачать
+                      </a>
+                    </div>
+                  </Col>
+                );
+              }
+
+              return null;
+            })}
+          </Row>
+        </div>
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold mb-2">Аудиозаписи</h3>
+          <Row gutter={[24, 24]}>
+            {fileQueries.map((query, index) => {
+              const file = batch.files[index];
+              const ext =
+                file.filename.split(".").pop()?.toLowerCase() || "other";
+              const fileType = FILE_TYPE_MAP[ext];
+
+              if (query.isLoading) return null;
+              if (query.isError) return null;
+
+              if (fileType === FileType.AUDIO) {
+                const url = query.data;
+                return (
+                  <Col key={file.id} xs={24} sm={12} md={8} lg={6}>
+                    <div className="p-3 bg-white shadow rounded">
+                      <audio controls style={{ width: "100%" }}>
+                        <source src={url} type="audio/mpeg" />
+                        Your browser does not support the audio tag.
+                      </audio>
+                      <span>{file.filename}</span>
+                      <a
+                        href={url}
+                        download
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 block text-center text-blue-500 hover:text-blue-700"
+                      >
+                        Скачать
+                      </a>
+                    </div>
+                  </Col>
+                );
+              }
+
+              return null;
+            })}
+          </Row>
+        </div>
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold mb-2">Изображения</h3>
+          <Row gutter={[24, 24]}>
+            {fileQueries.map((query, index) => {
+              const file = batch.files[index];
+              const ext =
+                file.filename.split(".").pop()?.toLowerCase() || "other";
+              const fileType = FILE_TYPE_MAP[ext];
+
+              if (query.isLoading) return null;
+              if (query.isError) return null;
+
+              if (fileType === FileType.IMAGE) {
+                const url = query.data;
+                return (
+                  <Col key={file.id} xs={24} sm={12} md={8} lg={6}>
+                    <div className="p-3 bg-white shadow rounded flex flex-col">
+                      <img
+                        src={url}
+                        alt={file.filename}
+                        className="w-full h-40 object-contain mb-2"
+                      />
+                      <span className="truncate">{file.filename}</span>
+                      <a
+                        href={url}
+                        download
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 block text-center text-blue-500 hover:text-blue-700"
+                      >
+                        Скачать
+                      </a>
+                    </div>
+                  </Col>
+                );
+              }
+              return null;
+            })}
+          </Row>
+        </div>
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold mb-2">Документы</h3>
+          <Row gutter={[24, 24]}>
+            {fileQueries.map((query, index) => {
+              const file = batch.files[index];
+              const ext =
+                file.filename.split(".").pop()?.toLowerCase() || "other";
+              const fileType = FILE_TYPE_MAP[ext];
+
+              if (query.isLoading) return null;
+              if (query.isError) return null;
+
+              if (fileType === FileType.DOCUMENT) {
+                const url = query.data;
+                return (
+                  <Col key={file.id} xs={24} sm={12} md={8} lg={6}>
+                    <div className="p-3 bg-white shadow rounded flex flex-col items-center">
+                      <span>📄 {file.filename}</span>
+                      <a
+                        href={url}
+                        download
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 block text-center text-blue-500 hover:text-blue-700"
+                      >
+                        Скачать
+                      </a>
+                    </div>
+                  </Col>
+                );
+              }
+
+              return null;
+            })}
+          </Row>
+        </div>
+
+        <div>
+          <h3 className="text-lg font-semibold mb-2">Прочие файлы</h3>
+          <Row gutter={[24, 24]}>
+            {fileQueries.map((query, index) => {
+              const file = batch.files[index];
+              const ext =
+                file.filename.split(".").pop()?.toLowerCase() || "other";
+              const fileType = FILE_TYPE_MAP[ext];
+
+              if (query.isLoading) return null;
+              if (query.isError) return null;
+
+              if (
+                fileType !== FileType.VIDEO &&
+                fileType !== FileType.AUDIO &&
+                fileType !== FileType.IMAGE &&
+                fileType !== FileType.DOCUMENT
+              ) {
+                const url = query.data;
+                return (
+                  <Col key={file.id} xs={24} sm={12} md={8} lg={6}>
+                    <div className="p-3 bg-white shadow rounded flex flex-col items-center">
+                      <span>📁 {file.filename}</span>
+                      <a
+                        href={url}
+                        download
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 block text-center text-blue-500 hover:text-blue-700"
+                      >
+                        Скачать
+                      </a>
+                    </div>
+                  </Col>
+                );
+              }
+
+              return null;
+            })}
+          </Row>
+        </div>
       </Card>
     </div>
   );
