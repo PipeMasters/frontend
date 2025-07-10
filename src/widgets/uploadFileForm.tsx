@@ -11,6 +11,8 @@ import {
 import { useUploadFile } from "../features/file/useUploadFile";
 import { FileType, FILE_TYPE_MAP } from "../services/file/model";
 import { uploadToPresignedUrl } from "../services/file";
+import { Tooltip } from "antd";
+import { QuestionCircleOutlined } from "@ant-design/icons";
 
 export default function UploadFileForm({ fileId }: { fileId: number }) {
   const [form] = Form.useForm();
@@ -62,7 +64,7 @@ export default function UploadFileForm({ fileId }: { fileId: number }) {
           const presignedUrl = await getPresignedUrlAsync({
             filename,
             fileType: guessedType,
-            uploadBatchId: fileId, // Используем fileId из пропсов
+            uploadBatchId: fileId,
           });
 
           await uploadToPresignedUrl(presignedUrl, file, (progress) => {
@@ -82,7 +84,7 @@ export default function UploadFileForm({ fileId }: { fileId: number }) {
             notification.warning({
               key,
               message: `Файл "${filename}" уже существует`,
-              description: `Файл "${originalName}" не загружен из-за конфликта имён.`,
+              description: `Файл "${originalName}" не загружен так как файл с таким именем уже существует.`,
               duration: 3,
             });
           } else {
@@ -161,27 +163,97 @@ export default function UploadFileForm({ fileId }: { fileId: number }) {
           </div>
         </Form.Item>
         <Form.Item
-          label="Шаблон имени файла"
+          label={
+            <span>
+              Шаблон имени файла&nbsp;
+              <Tooltip
+                title={
+                  <div className="max-w-fit">
+                    <p>
+                      Используйте {"{{index}}"} для указания порядкового номера.
+                    </p>
+                    <ul
+                      style={{
+                        paddingLeft: 16,
+                        margin: "8px 0",
+                        listStyleType: "disc",
+                      }}
+                    >
+                      <li>
+                        <code>file-{"{{index}}"} → file-1.mp4</code>
+                      </li>
+                      <li>
+                        <code>report-{"{{index}}"} → report-5.mp4</code>
+                      </li>
+                      <li>
+                        <code>video-{"{{index}}"} → video-10.mp4</code>
+                      </li>
+                    </ul>
+                  </div>
+                }
+              >
+                <QuestionCircleOutlined style={{ color: "#1890ff" }} />
+              </Tooltip>
+            </span>
+          }
           name="filenameTemplate"
-          rules={[{ required: true }]}
+          rules={[
+            { required: true, message: "Введите шаблон имени" },
+            {
+              pattern: /\{\{index\}\}/,
+              message: "Шаблон должен содержать {{index}}",
+            },
+            {
+              validator: (_, value) => {
+                if (value.match(/[^\p{L}0-9\-_\{\}]/gu)) {
+                  return Promise.reject(
+                    "Разрешены буквы (включая русские), цифры, дефисы и подчеркивания"
+                  );
+                }
+                return Promise.resolve();
+              },
+            },
+          ]}
           initialValue="file-{{index}}"
         >
           <Input placeholder="file-{{index}}" />
         </Form.Item>
+
         <Form.Item
-          label="Начальный индекс"
+          label={
+            <span>
+              Начальный индекс&nbsp;
+              <Tooltip
+                title={
+                  <div className="max-w-fit">
+                    <p>Укажите начальный индекс для нумерации файлов.</p>
+                  </div>
+                }
+              >
+                <QuestionCircleOutlined style={{ color: "#1890ff" }} />
+              </Tooltip>
+            </span>
+          }
           name="startIndex"
-          rules={[{ required: true}]}
-          initialValue="1"
+          normalize={(value) => Number(value) || 1}
+          rules={[
+            { required: true, message: "Введите начальный индекс" },
+            {
+              type: "number",
+              min: 1,
+              message: "Индекс должен быть ≥ 1",
+            },
+          ]}
+          initialValue={1}
         >
-          <Input type="number" placeholder="1" />
+          <Input type="number" min={1} placeholder="1" />
         </Form.Item>
         <Form.Item>
           <Button
             htmlType="submit"
             disabled={isPending || activeUploads >= MAX_FILES}
             loading={isPending || activeUploads > 0}
-             className="!bg-red-600 !text-white !border-none w-full"
+            className="!bg-red-600 !text-white !border-none w-full"
           >
             {isPending || activeUploads > 0
               ? `${activeUploads} файлов в очереди...`
