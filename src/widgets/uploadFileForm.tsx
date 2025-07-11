@@ -46,7 +46,18 @@ export default function UploadFileForm({ fileId }: { fileId: number }) {
         const file = files[i];
         const originalName = file.name;
         const ext = originalName.split(".").pop()?.toLowerCase() || "";
-        const guessedType = FILE_TYPE_MAP[ext] || FileType.OTHER;
+        const guessedType =
+          ext in FILE_TYPE_MAP ? FILE_TYPE_MAP[ext] : FileType.OTHER;
+
+        if (guessedType === FileType.OTHER) {
+          notification.error({
+            key: `invalid-${originalName}`,
+            message: `Неподдерживаемый тип файла`,
+            description: `Файл "${originalName}" имеет неподдерживаемое расширение.`,
+            duration: 3,
+          });
+          continue;
+        }
 
         const index = startIdx + i;
         const filename = `${filenameTemplate.replace("{{index}}", index.toString())}.${ext}`;
@@ -125,6 +136,17 @@ export default function UploadFileForm({ fileId }: { fileId: number }) {
   };
 
   const beforeUpload = (file: File) => {
+    const ext = file.name.split(".").pop()?.toLowerCase() || "";
+    const guessedType =
+      ext in FILE_TYPE_MAP ? FILE_TYPE_MAP[ext] : FileType.OTHER;
+    if (guessedType === FileType.OTHER) {
+      notification.error({
+        message: "Ошибка",
+        description: `Файлы с расширением .${ext} нельзя загружать`,
+        duration: 3,
+      });
+      return false;
+    }
     setFiles((prev) => [...prev, file]);
     return false;
   };

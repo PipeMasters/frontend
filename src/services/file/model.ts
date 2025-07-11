@@ -23,6 +23,7 @@ export const FILE_TYPE_MAP: Record<string, FileType> = {
   docx: FileType.DOCUMENT,
   xls: FileType.DOCUMENT,
   xlsx: FileType.DOCUMENT,
+  csv: FileType.DOCUMENT,
   txt: FileType.DOCUMENT,
 
   other: FileType.OTHER,
