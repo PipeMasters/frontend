@@ -30,9 +30,6 @@ function OverviewComponent() {
     return <div>Ошибка загрузки</div>;
   }
 
-  const videoUrl =
-    "http://92.242.60.137:9000/dev-bucket/d8dbece3-cf14-441b-a877-8cb95f08ce73/file-3.mp4?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20250707T140502Z&X-Amz-SignedHeaders=host&X-Amz-Credential=spring%2F20250707%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Expires=600&X-Amz-Signature=c67eac6664b11e952865bfc3e6e31285df6cdd212550eb695a9206b4ee30dbe1";
-
   const tableData = [
     {
       key: "directory",
@@ -110,6 +107,18 @@ function OverviewComponent() {
     },
   ];
 
+  const downloadFile = async (url: string, filename: string) => {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(link.href);
+  };
+
   return (
     <div className="flex flex-col p-10 pt-0 gap-8">
       {/* <div className="flex justify-center pt-3">
@@ -118,10 +127,9 @@ function OverviewComponent() {
           Your browser does not support the video tag.
         </video>
       </div> */}
-    
 
       <div className="flex flex-col pt-4">
-        <Card title="Подробная информация о партии">
+        <Card title="Подробная информация о записи">
           <Table
             size="small"
             dataSource={tableData}
@@ -145,7 +153,7 @@ function OverviewComponent() {
           />
         </Card>
       </div>
-  <div className="flex flex-col">
+      <div className="flex flex-col">
         <UploadFileForm fileId={parseInt(fileId)} />
       </div>
       <Card title="Прикрепленные файлы">
@@ -171,15 +179,6 @@ function OverviewComponent() {
                         Your browser does not support the video tag.
                       </video>
                       <span>{file.filename}</span>
-                      <a
-                        href={url}
-                        download
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-2 block text-center text-blue-500 hover:text-blue-700"
-                      >
-                        Скачать
-                      </a>
                     </div>
                   </Col>
                 );
@@ -211,15 +210,6 @@ function OverviewComponent() {
                         Your browser does not support the audio tag.
                       </audio>
                       <span>{file.filename}</span>
-                      <a
-                        href={url}
-                        download
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-2 block text-center text-blue-500 hover:text-blue-700"
-                      >
-                        Скачать
-                      </a>
                     </div>
                   </Col>
                 );
@@ -252,15 +242,12 @@ function OverviewComponent() {
                         className="w-full h-40 object-contain mb-2"
                       />
                       <span className="truncate">{file.filename}</span>
-                      <a
-                        href={url}
-                        download
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-2 block text-center text-blue-500 hover:text-blue-700"
+                      <Button
+                        type="link"
+                        onClick={() => downloadFile(url, file.filename)}
                       >
                         Скачать
-                      </a>
+                      </Button>
                     </div>
                   </Col>
                 );
@@ -289,9 +276,9 @@ function OverviewComponent() {
                       <span>📄 {file.filename}</span>
                       <a
                         href={url}
-                        download
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        download={file.filename}
+                        // target="_blank"
+                        // rel="noopener noreferrer"
                         className="mt-2 block text-center text-blue-500 hover:text-blue-700"
                       >
                         Скачать
@@ -306,7 +293,7 @@ function OverviewComponent() {
           </Row>
         </div>
 
-        <div>
+        {/* <div>
           <h3 className="text-lg font-semibold mb-2">Прочие файлы</h3>
           <Row gutter={[24, 24]}>
             {fileQueries.map((query, index) => {
@@ -331,9 +318,9 @@ function OverviewComponent() {
                       <span>📁 {file.filename}</span>
                       <a
                         href={url}
-                        download
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        download={file.filename}
+                        // target="_blank"
+                        // rel="noopener noreferrer"
                         className="mt-2 block text-center text-blue-500 hover:text-blue-700"
                       >
                         Скачать
@@ -346,7 +333,7 @@ function OverviewComponent() {
               return null;
             })}
           </Row>
-        </div>
+        </div> */}
       </Card>
     </div>
   );
