@@ -135,6 +135,7 @@ export default function FilterCard({ onFilter }: FilterCardProps) {
               tokenSeparators={[",", " "]}
               allowClear
               open={false}
+              suffixIcon={null}
             />
           </Form.Item>
 
