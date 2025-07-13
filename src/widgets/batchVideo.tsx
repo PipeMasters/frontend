@@ -26,7 +26,7 @@ export default function BatchVideo({ data }: { data: BatchVideo[] }) {
                 style={{ fontSize: 22 }}
               />
               <span className="text-lg">
-                Видеозапись от {formatDate(video.dateDeparted)} — {formatDate(video.dateArrived)}, поезд{" "}
+                Видеозапись № {video.id} от {formatDate(video.dateDeparted)} — {formatDate(video.dateArrived)}, поезд{" "}
                 {video.trainNumber}, начальник {video.chiefName}
               </span>
             </div>
