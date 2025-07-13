@@ -73,3 +73,29 @@ export interface BatchRequest {
   branchId: number;
   absence?: AbsenseInBatch;
 }
+
+export interface BatchQueryParams {
+  departureDateFrom?: string;
+  departureDateTo?: string;
+  specificDate?: string;
+  arrivalDateFrom?: string;
+  arrivalDateTo?: string;
+  createdFrom?: string;
+  createdTo?: string;
+  trainId?: number;
+  chiefId?: number;
+  uploadedById?: number;
+  branchId?: number;
+  keywords?: string;
+  page?: number;
+  size?: number;
+  sort?: string; 
+}
+
+export interface BatchPageResponse {
+  content: BatchVideo[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+}
