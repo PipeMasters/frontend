@@ -20,17 +20,23 @@ export default function FilterCard({ onFilter }: FilterCardProps) {
   const { data: branches } = useGetBranches();
 
   const workers = users?.filter((user) => user.roles.includes(RoleEnum.USER));
-  const chiefs = users?.filter((user) => user.roles.includes(RoleEnum.BRANCH_ADMIN));
+  const chiefs = users?.filter((user) =>
+    user.roles.includes(RoleEnum.BRANCH_ADMIN)
+  );
 
   const onFinish = (values: any) => {
     console.log("Фильтр применён:", values);
+
+    const keywordsString = Array.isArray(values.keywords)
+      ? values.keywords.join(", ")
+      : values.keywords;
 
     const params: BatchQueryParams = {
       trainId: values.trainId,
       uploadedById: values.workers,
       chiefId: values.chiefs,
       branchId: values.branch,
-      keywords: values.keywords,
+      keywords: keywordsString,
       departureDateFrom: values.departureDateRange?.[0]?.format("YYYY-MM-DD"),
       departureDateTo: values.departureDateRange?.[1]?.format("YYYY-MM-DD"),
       arrivalDateFrom: values.arrivalDateRange?.[0]?.format("YYYY-MM-DD"),
@@ -122,7 +128,14 @@ export default function FilterCard({ onFilter }: FilterCardProps) {
           </Form.Item>
 
           <Form.Item name="keywords">
-            <Input placeholder="Ключевые слова" allowClear />
+            <Select
+              mode="tags"
+              style={{ width: "100%" }}
+              placeholder="Введите ключевые слова"
+              tokenSeparators={[",", " "]}
+              allowClear
+              open={false}
+            />
           </Form.Item>
 
           <Form.Item className="flex justify-center">
@@ -138,7 +151,7 @@ export default function FilterCard({ onFilter }: FilterCardProps) {
               htmlType="button"
               onClick={() => {
                 form.resetFields();
-                onFilter({}); 
+                onFilter({});
               }}
               className="!bg-gray-300 !text-black !border-none"
             >

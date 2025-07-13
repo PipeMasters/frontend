@@ -2,6 +2,11 @@ import { List } from "antd";
 import { VideoCameraOutlined } from "@ant-design/icons";
 import { Link } from "@tanstack/react-router";
 import type {BatchVideo } from "../services/batch";
+import dayjs from "dayjs";
+
+function formatDate(date: string | undefined) {
+  return date ? dayjs(date).format("DD.MM.YYYY") : "";
+}
 
 export default function BatchVideo({ data }: { data: BatchVideo[] }) {
   return (
@@ -21,7 +26,7 @@ export default function BatchVideo({ data }: { data: BatchVideo[] }) {
                 style={{ fontSize: 22 }}
               />
               <span className="text-lg">
-                Видеозапись от {video.dateDeparted} - {video.dateArrived}, поезд{" "}
+                Видеозапись от {formatDate(video.dateDeparted)} — {formatDate(video.dateArrived)}, поезд{" "}
                 {video.trainNumber}, начальник {video.chiefName}
               </span>
             </div>
