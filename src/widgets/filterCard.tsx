@@ -20,17 +20,15 @@ export default function FilterCard({ onFilter }: FilterCardProps) {
   const { data: branches } = useGetBranches();
 
   const workers = users?.filter((user) => user.roles.includes(RoleEnum.USER));
-  const chief = users?.filter((user) =>
-    user.roles.includes(RoleEnum.BRANCH_ADMIN)
-  );
+  const chiefs = users?.filter((user) => user.roles.includes(RoleEnum.BRANCH_ADMIN));
 
   const onFinish = (values: any) => {
     console.log("Фильтр применён:", values);
 
-    const rawParams: BatchQueryParams = {
+    const params: BatchQueryParams = {
       trainId: values.trainId,
       uploadedById: values.workers,
-      chiefId: values.chief,
+      chiefId: values.chiefs,
       branchId: values.branch,
       keywords: values.keywords,
       departureDateFrom: values.departureDateRange?.[0]?.format("YYYY-MM-DD"),
@@ -40,14 +38,6 @@ export default function FilterCard({ onFilter }: FilterCardProps) {
       createdFrom: values.createdDateRange?.[0]?.toISOString(),
       createdTo: values.createdDateRange?.[1]?.toISOString(),
     };
-
-    const params: BatchQueryParams = Object.fromEntries(
-      Object.entries(rawParams).filter(
-        ([_, v]) => v !== undefined && v !== null
-      )
-    );
-
-    console.log("Отправляемые параметры:", params);
     onFilter(params);
   };
 
@@ -101,9 +91,9 @@ export default function FilterCard({ onFilter }: FilterCardProps) {
             </Select>
           </Form.Item>
 
-          <Form.Item name="chief">
+          <Form.Item name="chiefs">
             <Select placeholder="Начальник" allowClear>
-              {chief?.map((user) => (
+              {chiefs?.map((user) => (
                 <Option key={user.id} value={user.id}>
                   {user.surname} {user.name}
                 </Option>

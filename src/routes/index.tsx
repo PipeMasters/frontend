@@ -5,7 +5,7 @@ import { DatePicker, Pagination } from "antd";
 import ModalButton from "../widgets/modalButton";
 import BatchVideo from "../widgets/batchVideo";
 import FilterCard from "../widgets/filterCard";
-import type {BatchQueryParams} from "../services/batch";
+import type { BatchQueryParams } from "../services/batch";
 import { useBatches } from "../features/batch/useBatches";
 
 const { RangePicker } = DatePicker;
@@ -13,7 +13,6 @@ const { RangePicker } = DatePicker;
 export const Route = createFileRoute("/")({
   component: RouteComponent,
 });
-
 
 function RouteComponent() {
   const [filterParams, setFilterParams] = useState<BatchQueryParams>({
@@ -51,16 +50,17 @@ function RouteComponent() {
       <div className="flex-1">
         <BatchVideo data={batch?.content ?? []} />
 
-        <Pagination
-          current={(filterParams.page ?? 0) + 1}
-          pageSize={filterParams.size}
-          total={batch?.totalElements ?? 0}
-          showSizeChanger
-          pageSizeOptions={["5", "10", "20", "50"]}
-          onChange={onPageChange}
-          onShowSizeChange={onPageChange}
-          style={{ marginTop: 16, textAlign: "center" }}
-        />
+        <div className="flex justify-center mt-4">
+          <Pagination
+            current={(filterParams.page ?? 0) + 1}
+            pageSize={filterParams.size}
+            total={batch?.totalElements ?? 0}
+            showSizeChanger
+            pageSizeOptions={["5", "10", "20", "50"]}
+            onChange={onPageChange}
+            onShowSizeChange={onPageChange}
+          />
+        </div>
       </div>
     </div>
   );

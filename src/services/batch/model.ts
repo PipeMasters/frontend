@@ -83,7 +83,7 @@ export interface BatchQueryParams {
   createdFrom?: string;
   createdTo?: string;
   trainId?: number;
-  chiefId?: string;
+  chiefId?: number;
   uploadedById?: number;
   branchId?: number;
   keywords?: string;
