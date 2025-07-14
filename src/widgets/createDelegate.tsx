@@ -39,8 +39,8 @@ export default function CreateDelegateForm({
     const payload: DelegationRequest = {
       delegatorId: 3,
       substituteId: values.substitute,
-      fromDate: dayjs(values.dateRange[0]).format("YYYY-MM-DD"),
-      toDate: dayjs(values.dateRange[1]).format("YYYY-MM-DD"),
+      fromDate: (values.dateRange[0]).format("YYYY-MM-DD"),
+      toDate: (values.dateRange[1]).format("YYYY-MM-DD"),
     };
 
     createDelegation(payload, {
