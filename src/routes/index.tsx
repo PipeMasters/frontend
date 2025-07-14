@@ -46,6 +46,7 @@ function RouteComponent() {
         <ModalButton buttonText="Добавить филиал" type="branch" />
         <ModalButton buttonText="Добавить запись" type="batch" />
         <ModalButton buttonText="Добавить пользователя" type="user" />
+        <ModalButton buttonText="Делегировать обязанности" type="delegate" />
       </div>
 
       <div className="flex-1">

@@ -4,11 +4,12 @@ import CreateTrainForm from "./createTrainForm";
 import CreateBranchForm  from "./createBranchForm";
 import CreateBatchForm from "./createBatchForm";
 import CreateUserForm from "./createUserForm"
+import CreateDelegateForm from "./createDelegate";
 
 
 type ModalButtonProps = {
     buttonText: string;
-    type: 'train' | 'branch' | 'batch' | "user";
+    type: 'train' | 'branch' | 'batch' | "user" | "delegate";
 };
 
 export default function ModalButton ({ buttonText, type }: ModalButtonProps) {
@@ -30,6 +31,9 @@ export default function ModalButton ({ buttonText, type }: ModalButtonProps) {
             break;
         case 'user':
             ModalComponent = <CreateUserForm open={isOpen} onCancel={handleClose} />;
+            break;
+        case 'delegate':
+            ModalComponent = <CreateDelegateForm open={isOpen} onCancel={handleClose} />;
             break;
         default:
             ModalComponent = null;
