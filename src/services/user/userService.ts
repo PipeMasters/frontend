@@ -10,3 +10,8 @@ export const getUsers = async (): Promise<UserResponse[]> => {
   const response = await client.get<UserResponse[]>("/users");
   return response.data;
 };
+
+export const createUser = async (userData: UserResponse): Promise<UserResponse> => {
+  const response = await client.post<UserResponse>("/users", userData);
+  return response.data;
+};

@@ -45,6 +45,7 @@ function RouteComponent() {
         <ModalButton buttonText="Добавить поезд" type="train" />
         <ModalButton buttonText="Добавить филиал" type="branch" />
         <ModalButton buttonText="Добавить запись" type="batch" />
+        <ModalButton buttonText="Добавить пользователя" type="user" />
       </div>
 
       <div className="flex-1">

@@ -3,11 +3,12 @@ import { Button } from "antd";
 import CreateTrainForm from "./createTrainForm";
 import CreateBranchForm  from "./createBranchForm";
 import CreateBatchForm from "./createBatchForm";
+import CreateUserForm from "./createUserForm"
 
 
 type ModalButtonProps = {
     buttonText: string;
-    type: 'train' | 'branch' | 'batch';
+    type: 'train' | 'branch' | 'batch' | "user";
 };
 
 export default function ModalButton ({ buttonText, type }: ModalButtonProps) {
@@ -26,6 +27,9 @@ export default function ModalButton ({ buttonText, type }: ModalButtonProps) {
             break;
         case 'batch':
             ModalComponent = <CreateBatchForm open={isOpen} onCancel={handleClose} />;
+            break;
+        case 'user':
+            ModalComponent = <CreateUserForm open={isOpen} onCancel={handleClose} />;
             break;
         default:
             ModalComponent = null;
