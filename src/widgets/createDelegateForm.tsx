@@ -3,7 +3,6 @@ import { notification } from "antd";
 import { useCreateDelegation } from "../features/delegat";
 import { useGetUsers } from "../features/user";
 import type { DelegationRequest } from "../services/delegat";
-import dayjs from "dayjs";
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;

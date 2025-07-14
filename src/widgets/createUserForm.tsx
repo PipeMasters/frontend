@@ -4,7 +4,6 @@ import { useCreateUser } from "../features/user";
 import { useGetBranches } from "../features/branch/useGetBranches";
 import { RoleEnum, type UserResponse } from "../services/user";
 
-const { Option } = Select;
 
 type CreateUserFormProps = {
   open: boolean;
@@ -63,7 +62,9 @@ export default function CreateUserForm({
       centered
       width={300}
     >
-      <div className="text-xl px-6 pt-6 pb-4 text-center">Создание пользователя</div>
+      <div className="text-xl px-6 pt-6 pb-4 text-center">
+        Создание пользователя
+      </div>
       <Form
         form={form}
         layout="vertical"
@@ -95,12 +96,16 @@ export default function CreateUserForm({
           name="role"
           rules={[{ required: true, message: "Выберите роль" }]}
         >
-          <Select placeholder="Выберите роль">
-            {Object.values(RoleEnum).map((role) => (
-              <Option key={role} value={role}>
-                {role}
-              </Option>
-            ))}
+          <Select placeholder="Выберите роль" allowClear>
+            <Select.Option value={RoleEnum.USER}>
+              Работник
+            </Select.Option>
+            <Select.Option value={RoleEnum.BRANCH_ADMIN}>
+              Начальник филиала
+            </Select.Option>
+            <Select.Option value={RoleEnum.ADMIN}>
+              Начальник
+            </Select.Option>
           </Select>
         </Form.Item>
 

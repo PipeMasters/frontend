@@ -7,6 +7,7 @@ import BatchVideo from "../widgets/batchVideo";
 import FilterCard from "../widgets/filterCard";
 import type { BatchQueryParams } from "../services/batch";
 import { useBatches } from "../features/batch/useBatches";
+import ModalDropdownButton from "../widgets/modalButton";
 
 const { RangePicker } = DatePicker;
 
@@ -42,11 +43,7 @@ function RouteComponent() {
     <div className="flex p-4 gap-10">
       <div className="flex flex-col w-72 space-y-4">
         <FilterCard onFilter={handleFilter} />
-        <ModalButton buttonText="Добавить поезд" type="train" />
-        <ModalButton buttonText="Добавить филиал" type="branch" />
-        <ModalButton buttonText="Добавить запись" type="batch" />
-        <ModalButton buttonText="Добавить пользователя" type="user" />
-        <ModalButton buttonText="Делегировать обязанности" type="delegate" />
+        <ModalDropdownButton />
       </div>
 
       <div className="flex-1">

@@ -1,5 +1,5 @@
 import React from "react";
-import { DatePicker, Select, Input, Button, Form, Spin } from "antd";
+import { DatePicker, Select, Button, Form, Spin } from "antd";
 import { useGetUsers } from "../features/user";
 import { useGetTrains } from "../features/train";
 import { RoleEnum } from "../services/user";
@@ -87,6 +87,16 @@ export default function FilterCard({ onFilter }: FilterCardProps) {
             />
           </Form.Item>
 
+          <Form.Item name="branch">
+            <Select placeholder="Филиал" allowClear>
+              {branches?.map((branch) => (
+                <Option key={branch.id} value={branch.id}>
+                  {branch.name}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+
           <Form.Item name="workers">
             <Select placeholder="Работник" allowClear>
               {workers?.map((user) => (
@@ -112,16 +122,6 @@ export default function FilterCard({ onFilter }: FilterCardProps) {
               {trains?.map((train) => (
                 <Option key={train.id} value={train.id}>
                   {train.trainNumber}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          <Form.Item name="branch">
-            <Select placeholder="Филиал" allowClear>
-              {branches?.map((branch) => (
-                <Option key={branch.id} value={branch.id}>
-                  {branch.name}
                 </Option>
               ))}
             </Select>
