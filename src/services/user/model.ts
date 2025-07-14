@@ -1,7 +1,7 @@
 export enum RoleEnum {
-  USER = "USER",
-  BRANCH_ADMIN = "BRANCH_ADMIN",
-  ADMIN = "ADMIN",
+  USER = "Рабоник",
+  BRANCH_ADMIN = "Начальник филиала",
+  ADMIN = "Начальник",
 }
 
 export interface UserResponse {
