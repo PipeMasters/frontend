@@ -44,12 +44,12 @@ function OverviewComponent() {
     {
       key: "trainDeparted",
       label: "Дата отправления поезда",
-      value: batch.trainDeparted,
+      value: new Date(batch.trainDeparted).toLocaleDateString(),
     },
     {
       key: "trainArrived",
       label: "Дата прибытия поезда",
-      value: batch.trainArrived,
+      value: new Date(batch.trainArrived).toLocaleDateString(),
     },
     {
       key: "trainId",

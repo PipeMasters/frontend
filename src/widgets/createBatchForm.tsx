@@ -6,7 +6,6 @@ import type { BatchRequest } from "../services/batch";
 import { Cause } from "../services/batch";
 import { useGetTrains } from "../features/train";
 import { useGetBranches } from "../features/branch/useGetBranches";
-import dayjs from "dayjs";
 
 type CreateBatchFormProps = {
   open: boolean;
@@ -40,8 +39,8 @@ export default function CreateBatchForm({
   const onFinish = (values: any) => {
     const payload: BatchRequest = {
       uploadedById: 1,
-      trainDeparted: dayjs(values.trainDeparted).format("YYYY-MM-DD"),
-      trainArrived: dayjs(values.trainArrived).format("YYYY-MM-DD"),
+      trainDeparted: (values.trainDeparted).format("YYYY-MM-DD"),
+      trainArrived: (values.trainArrived).format("YYYY-MM-DD"),
       trainId: values.trainId,
       comment: values.comment || "",
       branchId: values.branchId,
@@ -87,14 +86,14 @@ export default function CreateBatchForm({
           name="trainDeparted"
           rules={[{ required: true, message: "Выберите дату отправления" }]}
         >
-          <DatePicker placeholder="Дата отправления" className="w-full" />
+          <DatePicker placeholder="Дата отправления" className="w-full"  format="DD.MM.YYYY" />
         </Form.Item>
 
         <Form.Item
           name="trainArrived"
           rules={[{ required: true, message: "Выберите дату прибытия" }]}
         >
-          <DatePicker placeholder="Дата прибытия" className="w-full" />
+          <DatePicker placeholder="Дата прибытия" className="w-full"  format="DD.MM.YYYY" />
         </Form.Item>
 
         <Form.Item
