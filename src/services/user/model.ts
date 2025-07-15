@@ -5,7 +5,7 @@ export enum RoleEnum {
 }
 
 export interface UserResponse {
-  id: number;
+  id?: number;
   name: string;
   surname: string;
   patronymic: string;
