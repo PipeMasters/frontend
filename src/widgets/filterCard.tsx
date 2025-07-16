@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { DatePicker, Select, Button, Form, Spin } from "antd";
 import { useGetUsers } from "../features/user";
 import { useGetTrains } from "../features/train";

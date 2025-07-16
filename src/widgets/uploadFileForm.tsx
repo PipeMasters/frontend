@@ -10,15 +10,32 @@ import {
 } from "antd";
 import { useUploadFile } from "../features/file/useUploadFile";
 import { FileType, FILE_TYPE_MAP } from "../services/file/model";
-import { uploadToPresignedUrl } from "../services/file";
 import { Tooltip } from "antd";
 import { QuestionCircleOutlined } from "@ant-design/icons";
 
+const withRetry = async <T,>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3,
+  delay: number = 1000
+): Promise<T> => {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (attempt === maxRetries) throw error;
+      await new Promise((resolve) => setTimeout(resolve, delay * attempt));
+    }
+  }
+  throw new Error("Unexpected error in withRetry");
+};
+
 export default function UploadFileForm({ fileId }: { fileId: number }) {
   const [form] = Form.useForm();
-  const { getPresignedUrlAsync, isPending } = useUploadFile(fileId);
+  const { uploadFileAsync, isPending } = useUploadFile(fileId);
 
   const MAX_FILES = 5;
+  const MAX_RETRIES = 10;
+  const RETRY_DELAY = 5000;
   const [files, setFiles] = useState<File[]>([]);
   const [activeUploads, setActiveUploads] = useState<number>(0);
 
@@ -72,15 +89,21 @@ export default function UploadFileForm({ fileId }: { fileId: number }) {
         });
 
         try {
-          const presignedUrl = await getPresignedUrlAsync({
-            filename,
-            fileType: guessedType,
-            uploadBatchId: fileId,
-          });
-
-          await uploadToPresignedUrl(presignedUrl, file, (progress) => {
-            setProgress(key, progress);
-          });
+          await withRetry(
+            async () => {
+              await uploadFileAsync({
+                fileData: {
+                  filename,
+                  fileType: guessedType,
+                  uploadBatchId: fileId,
+                },
+                file,
+                onProgress: (progress) => setProgress(key, progress),
+              });
+            },
+            MAX_RETRIES,
+            RETRY_DELAY
+          );
 
           notification.success({
             key,
