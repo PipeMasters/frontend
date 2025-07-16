@@ -3,7 +3,6 @@ import { notification } from "antd";
 import { useCreateDelegation } from "../features/delegat";
 import { useGetUsers } from "../features/user";
 import type { DelegationRequest } from "../services/delegat";
-import dayjs from "dayjs";
 
 const { Option } = Select;
 const { RangePicker } = DatePicker;
@@ -39,8 +38,8 @@ export default function CreateDelegateForm({
     const payload: DelegationRequest = {
       delegatorId: 3,
       substituteId: values.substitute,
-      fromDate: dayjs(values.dateRange[0]).format("YYYY-MM-DD"),
-      toDate: dayjs(values.dateRange[1]).format("YYYY-MM-DD"),
+      fromDate: (values.dateRange[0]).format("YYYY-MM-DD"),
+      toDate: (values.dateRange[1]).format("YYYY-MM-DD"),
     };
 
     createDelegation(payload, {
