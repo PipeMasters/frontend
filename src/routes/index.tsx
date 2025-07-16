@@ -1,13 +1,11 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { DatePicker, Pagination } from "antd";
+import { Pagination } from "antd";
 import BatchVideo from "../widgets/batchVideo";
 import FilterCard from "../widgets/filterCard";
 import type { BatchQueryParams } from "../services/batch";
 import { useBatches } from "../features/batch/useBatches";
 import ModalDropdownButton from "../widgets/modalButton";
-
-const { RangePicker } = DatePicker;
 
 export const Route = createFileRoute("/")({
   component: RouteComponent,

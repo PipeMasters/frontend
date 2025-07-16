@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Button, Card, Table, Space, Col, Row, Tag, Progress } from "antd";
+import { Button, Card, Table, Col, Row, Tag } from "antd";
 import { useGetBatch } from "../../features/batch";
 import { useGetTrain } from "../../features/train";
 import { getCauseLabel } from "../../services/batch";
@@ -121,13 +121,6 @@ function OverviewComponent() {
 
   return (
     <div className="flex flex-col p-10 pt-0 gap-8">
-      {/* <div className="flex justify-center pt-3">
-        <video controls style={{ width: "100%", maxWidth: "1000px" }}>
-          <source src={videoUrl} type="video/mp4" />
-          Your browser does not support the video tag.
-        </video>
-      </div> */}
-
       <div className="flex flex-col pt-4">
         <Card title="Подробная информация о записи">
           <Table
@@ -244,7 +237,7 @@ function OverviewComponent() {
                       <span className="truncate">{file.filename}</span>
                       <Button
                         type="link"
-                        onClick={() => downloadFile(url, file.filename)}
+                        onClick={() => downloadFile(url as string, file.filename)}
                       >
                         Скачать
                       </Button>
