@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { DatePicker, Select, Button, Form, Spin } from "antd";
 import { useGetUsers } from "../features/user";
 import { useGetTrains } from "../features/train";
 import { RoleEnum } from "../services/user";
 import { useGetBranches } from "../features/branch/useGetBranches";
 import type { BatchQueryParams } from "../services/batch";
+import { useFilterState, useFilterActions } from "../store/filterStore";
+import dayjs from "dayjs";
 
 const { Option } = Select;
 
@@ -13,16 +15,22 @@ interface FilterCardProps {
 }
 
 export default function FilterCard({ onFilter }: FilterCardProps) {
-  const [form] = Form.useForm();
+  const filters = useFilterState();
+  const { setFilters, resetFilters } = useFilterActions();
 
   const { data: users, isLoading } = useGetUsers();
   const { data: trains } = useGetTrains();
   const { data: branches } = useGetBranches();
+  const [form] = Form.useForm();
 
   const workers = users?.filter((user) => user.roles.includes(RoleEnum.USER));
   const chiefs = users?.filter((user) =>
     user.roles.includes(RoleEnum.BRANCH_ADMIN)
   );
+
+  useEffect(() => {
+    form.setFieldsValue(convertParamsToFormValues(filters));
+  }, [filters, form]);
 
   const onFinish = (values: any) => {
     console.log("Фильтр применён:", values);
@@ -44,7 +52,39 @@ export default function FilterCard({ onFilter }: FilterCardProps) {
       createdFrom: values.createdDateRange?.[0]?.toISOString(),
       createdTo: values.createdDateRange?.[1]?.toISOString(),
     };
+
+    setFilters(params);
     onFilter(params);
+  };
+
+  const handleReset = () => {
+    resetFilters();
+    form.resetFields();
+    onFilter({});
+  };
+
+  const convertParamsToFormValues = (params: BatchQueryParams): any => {
+    return {
+      trainId: params.trainId,
+      workers: params.uploadedById,
+      chiefs: params.chiefId,
+      branch: params.branchId,
+      keywords: params.keywords
+        ? params.keywords.split(",").map((k) => k.trim())
+        : undefined,
+      departureDateRange:
+        params.departureDateFrom && params.departureDateTo
+          ? [dayjs(params.departureDateFrom), dayjs(params.departureDateTo)]
+          : undefined,
+      arrivalDateRange:
+        params.arrivalDateFrom && params.arrivalDateTo
+          ? [dayjs(params.arrivalDateFrom), dayjs(params.arrivalDateTo)]
+          : undefined,
+      createdDateRange:
+        params.createdFrom && params.createdTo
+          ? [dayjs(params.createdFrom), dayjs(params.createdTo)]
+          : undefined,
+    };
   };
 
   return (
@@ -150,10 +190,7 @@ export default function FilterCard({ onFilter }: FilterCardProps) {
 
             <Button
               htmlType="button"
-              onClick={() => {
-                form.resetFields();
-                onFilter({});
-              }}
+              onClick={handleReset}
               className="!bg-gray-300 !text-black !border-none"
             >
               Сбросить фильтры
