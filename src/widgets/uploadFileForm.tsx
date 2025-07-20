@@ -14,6 +14,7 @@ import { Tooltip } from "antd";
 import { QuestionCircleOutlined } from "@ant-design/icons";
 import { getFileDuration } from "../utils/fileDuration";
 import { calculateFileHash } from "../utils/fileHash";
+import { VALID_EXTENSIONS } from "../utils/validExtensions";
 
 const withRetry = async <T,>(
   fn: () => Promise<T>,
@@ -201,7 +202,7 @@ export default function UploadFileForm({ fileId }: { fileId: number }) {
               multiple
               beforeUpload={beforeUpload}
               showUploadList={false}
-              accept="*"
+              accept={VALID_EXTENSIONS}
             >
               <Button>Выбрать файлы</Button>
             </Upload>
