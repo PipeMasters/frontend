@@ -12,6 +12,8 @@ import { useUploadFile } from "../features/file/useUploadFile";
 import { FileType, FILE_TYPE_MAP } from "../services/file/model";
 import { Tooltip } from "antd";
 import { QuestionCircleOutlined } from "@ant-design/icons";
+import { getFileDuration } from "../utils/fileDuration";
+import { calculateFileHash } from "../utils/fileHash";
 
 const withRetry = async <T,>(
   fn: () => Promise<T>,
@@ -41,12 +43,10 @@ export default function UploadFileForm({ fileId }: { fileId: number }) {
 
   const onFinish = async (values: any) => {
     const { filenameTemplate, startIndex = 1 } = values;
-
     if (!files.length) {
       notification.error({ message: "Ошибка", description: "Выберите файлы" });
       return;
     }
-
     if (files.length > MAX_FILES) {
       notification.warning({
         message: "Много файлов",
@@ -78,7 +78,6 @@ export default function UploadFileForm({ fileId }: { fileId: number }) {
 
         const index = startIdx + i;
         const filename = `${filenameTemplate.replace("{{index}}", index.toString())}.${ext}`;
-
         const key = `upload-${originalName}-${Math.random().toString(36).substring(7)}`;
 
         notification.info({
@@ -89,6 +88,19 @@ export default function UploadFileForm({ fileId }: { fileId: number }) {
         });
 
         try {
+          const hash = await calculateFileHash(file);
+          let duration: number | undefined;
+          if (
+            guessedType === FileType.VIDEO ||
+            guessedType === FileType.AUDIO
+          ) {
+            try {
+              duration = await getFileDuration(file);
+            } catch (err) {
+              console.warn(`Не удалось получить длительность для ${file.name}`);
+            }
+          }
+
           await withRetry(
             async () => {
               await uploadFileAsync({
@@ -96,6 +108,9 @@ export default function UploadFileForm({ fileId }: { fileId: number }) {
                   filename,
                   fileType: guessedType,
                   uploadBatchId: fileId,
+                  size: file.size,
+                  duration,
+                  hash,
                 },
                 file,
                 onProgress: (progress) => setProgress(key, progress),
@@ -113,12 +128,11 @@ export default function UploadFileForm({ fileId }: { fileId: number }) {
           });
         } catch (error: any) {
           const status = error?.response?.status;
-
           if (status === 409) {
             notification.warning({
               key,
               message: `Файл "${filename}" уже существует`,
-              description: `Файл "${originalName}" не загружен так как файл с таким именем уже существует.`,
+              description: `Файл "${originalName}" не загружен, так как файл с таким именем уже существует.`,
               duration: 3,
             });
           } else {

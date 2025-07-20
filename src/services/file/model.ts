@@ -32,6 +32,7 @@ export interface FileRequest {
   uploadBatchId: number;
   filename: string;
   fileType: FileType;
+  size: number;
+  duration?: number;
+  hash: string;
 }
-
-
