@@ -6,33 +6,32 @@ import FilterCard from "../widgets/filterCard";
 import type { BatchQueryParams } from "../services/batch";
 import { useBatches } from "../features/batch/useBatches";
 import ModalDropdownButton from "../widgets/modalButton";
+import { useFilterActions, useFilterState } from "../store/filterStore";
 
 export const Route = createFileRoute("/")({
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const [filterParams, setFilterParams] = useState<BatchQueryParams>({
-    page: 0,
-    size: 10,
-  });
+  const filterParams = useFilterState();
+  const { setFilters } = useFilterActions();
 
   const { data: batch } = useBatches(filterParams);
 
   const handleFilter = (params: BatchQueryParams) => {
-    setFilterParams((prev) => ({
+    setFilters({
       ...params,
       page: 0,
-      size: prev.size,
-    }));
+      size: filterParams.size,
+    });
   };
 
-  const onPageChange = (page: number, pageSize?: number) => {
-    setFilterParams((prev) => ({
-      ...prev,
+  const onPageChange = (page: number, pageSize: number) => {
+    setFilters({
+      ...filterParams,
       page: page - 1,
-      size: pageSize ?? prev.size,
-    }));
+      size: pageSize,
+    });
   };
 
   return (
