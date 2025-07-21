@@ -1,10 +1,11 @@
-import { Button, Form, Input, Modal, Select } from "antd";
-import { notification } from "antd";
+import { UploadOutlined } from "@ant-design/icons";
+import { Button, Form, Input, Modal, Select, Upload, notification } from "antd";
 import { useCreateTrain } from "../features/train";
 import { useGetBranches } from "../features/branch/useGetBranches";
+import { useUploadTrainSchedules } from "../features/train";
+import { useGetUsers } from "../features/user";
 import type { TrainResponse } from "../services/train";
 import { RoleEnum } from "../services/user";
-import { useGetUsers } from "../features/user";
 
 const { Option } = Select;
 
@@ -19,47 +20,80 @@ export default function CreateTrainForm({
 }: CreateTrainFormProps) {
   const [form] = Form.useForm();
   const { mutate: createTrain, isPending } = useCreateTrain();
+  const { mutate: uploadSchedules, isPending: isUploading } =
+    useUploadTrainSchedules();
   const { data: branches } = useGetBranches();
   const { data: users } = useGetUsers();
   const chief = users?.filter((user) =>
     user.roles.includes(RoleEnum.BRANCH_ADMIN)
   );
 
-  const openSuccessNotification = () => {
+  const openSuccessNotification = (message: string) => {
     notification.success({
-      message: "Поезд успешно создан",
-      duration: 3,
+      message,
+      duration: 5,
     });
   };
 
-  const openErrorNotification = () => {
+  const openErrorNotification = (message: string) => {
     notification.error({
-      message: "Произошла ошибка при создании поезда",
-      duration: 3,
+      message,
+      duration: 5,
     });
   };
 
   const onFinish = (values: any) => {
-  const payload: TrainResponse = {
-    trainNumber: Number(values.trainNumber),
-    routeMessage: values.routeMessage,
-    consistCount: Number(values.consistCount),
-    chiefId: Number(values.chiefId), 
-    branchId: Number(values.branchId),
+    const payload: TrainResponse = {
+      trainNumber: Number(values.trainNumber),
+      routeMessage: values.routeMessage,
+      consistCount: Number(values.consistCount),
+      chiefId: Number(values.chiefId),
+      branchId: Number(values.branchId),
+    };
+
+    createTrain(payload, {
+      onSuccess: () => {
+        openSuccessNotification("Поезд успешно создан");
+        form.resetFields();
+        onCancel();
+      },
+      onError: () => {
+        openErrorNotification("Произошла ошибка при создании поезда");
+      },
+    });
   };
 
-  createTrain(payload, {
-    onSuccess: () => {
-      openSuccessNotification();
-      form.resetFields();
-      onCancel();
-    },
-    onError: () => {
-      openErrorNotification();
-    },
-  });
-};
+  const handleUpload = (file: File) => {
+    uploadSchedules(file, {
+      onSuccess: (response) => {
+        const lines = [
+          `Всего записей: ${response.totalRecords}`,
+          `Успешно загружено: ${response.successfullyParsed}`,
+          `С ошибками: ${response.recordsWithError}`,
+          `Уже в базе: ${response.existingRecordsInDb}`,
+          `Обновлено: ${response.updatedRecords}`,
+        ];
 
+        if (response.errorMessages.length) {
+          lines.push("Ошибки:");
+          response.errorMessages.forEach((msg) => {
+            lines.push(`- ${msg}`);
+          });
+        }
+
+        notification.success({
+          message: "Файл успешно загружен",
+          description: lines.join("\n"),
+          duration: 6,
+        });
+      },
+      onError: () => {
+        openErrorNotification("Ошибка загрузки файла");
+      },
+    });
+
+    return false;
+  };
 
   return (
     <Modal
@@ -91,7 +125,10 @@ export default function CreateTrainForm({
           <Input placeholder="Маршрут" />
         </Form.Item>
 
-        <Form.Item name="chiefId">
+        <Form.Item
+          name="chiefId"
+          rules={[{ required: true, message: "Выберите начальника" }]}
+        >
           <Select placeholder="Начальник" allowClear>
             {chief?.map((user) => (
               <Option key={user.id} value={user.id}>
@@ -119,6 +156,26 @@ export default function CreateTrainForm({
           rules={[{ required: true, message: "Введите количество вагонов" }]}
         >
           <Input type="number" placeholder="Количество вагонов" />
+        </Form.Item>
+
+        <Form.Item
+          label="Вы можете выгрузить данные о поездах из таблицы Excel"
+          labelCol={{ span: 24 }}
+        >
+          <Upload
+            beforeUpload={handleUpload}
+            showUploadList={false}
+            accept=".xlsx,.xls"
+          >
+            <Button
+              icon={<UploadOutlined />}
+              block
+              loading={isUploading}
+              className="mb-2"
+            >
+              Загрузить Excel
+            </Button>
+          </Upload>
         </Form.Item>
 
         <Form.Item>
