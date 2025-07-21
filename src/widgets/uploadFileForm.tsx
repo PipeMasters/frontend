@@ -15,11 +15,12 @@ import { QuestionCircleOutlined } from "@ant-design/icons";
 import { getFileDuration } from "../utils/fileDuration";
 import { calculateFileHash } from "../utils/fileHash";
 import { VALID_EXTENSIONS } from "../utils/validExtensions";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function UploadFileForm({ fileId }: { fileId: number }) {
   const [form] = Form.useForm();
   const { uploadFileAsync, isPending } = useUploadFile(fileId);
-
+  const queryClient = useQueryClient();
   const MAX_FILES = 5;
   const [files, setFiles] = useState<File[]>([]);
   const [activeUploads, setActiveUploads] = useState<number>(0);
@@ -125,6 +126,10 @@ export default function UploadFileForm({ fileId }: { fileId: number }) {
       }
 
       notification.success({ message: "Все файлы успешно загружены" });
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["batch", fileId] });
+        queryClient.invalidateQueries({ queryKey: ["files"] });
+      }, 6000);
     } catch (error) {
       notification.error({ message: "Не все файлы загружены" });
     } finally {

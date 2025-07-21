@@ -24,12 +24,10 @@ function RouteComponent() {
     "здравствуйте",
     true
   );
-  const { data: mediaResults} =
-    useGetMediaTranscript(2);
+ 
   const { data: batchResults} =
     useGetBatchTranscript(2, "здравствуйте");
   console.log("batchResults", batchResults);
-  console.log("mediaResults", mediaResults);
   console.log("globalResults", globalResults);
   const handleFilter = (params: BatchQueryParams) => {
     setFilters({

@@ -6,7 +6,10 @@ import { getCauseLabel } from "../../services/batch";
 import { useGetFileUrls } from "../../features/file";
 import { FILE_TYPE_MAP, FileType } from "../../services/file";
 import UploadFileForm from "../../widgets/uploadFileForm";
-
+import { useGetMediaTranscript } from "../../features/transcripts";
+import type { TranscriptsMediaResponse } from "../../services/transcripts";
+import { useState } from "react";
+import { Collapse } from "antd";
 export const Route = createFileRoute("/overview/$fileId")({
   component: OverviewComponent,
 });
@@ -15,12 +18,34 @@ function OverviewComponent() {
   const { fileId } = Route.useParams();
 
   const { data: batch, isLoading, isError } = useGetBatch(parseInt(fileId));
+  const [openTranscripts, setOpenTranscripts] = useState<
+    Record<number, boolean>
+  >({});
+
+  const toggleTranscript = (mediaFileId: number) => {
+    setOpenTranscripts(
+      (prev: Record<number, boolean>): Record<number, boolean> => ({
+        ...prev,
+        [mediaFileId]: !prev[mediaFileId],
+      })
+    );
+  };
   const trainId = batch?.trainId;
   const trainQuery = useGetTrain(trainId ?? 1);
   const train = trainQuery.data;
 
   const fileIds = batch?.files?.map((file) => file.id) ?? [];
   const fileQueries = useGetFileUrls(fileIds);
+
+  const audioFileIds =
+    batch?.files
+      ?.filter((file) => {
+        const ext = file.filename.split(".").pop()?.toLowerCase() || "";
+        return FILE_TYPE_MAP[ext] === FileType.AUDIO;
+      })
+      .map((file) => file.id) ?? [];
+
+  const transcriptQueries = useGetMediaTranscript(audioFileIds);
 
   if (isLoading || trainQuery.isLoading) {
     return <div>Загрузка...</div>;
@@ -149,6 +174,94 @@ function OverviewComponent() {
       <div className="flex flex-col">
         <UploadFileForm fileId={parseInt(fileId)} />
       </div>
+
+      <Card title="Аудиозаписи с транскриптами">
+        <Collapse accordion>
+          {audioFileIds.map((mediaFileId, index) => {
+            const file = batch.files.find((f) => f.id === mediaFileId);
+            const transcriptQuery = transcriptQueries[index];
+
+            if (transcriptQuery.isLoading) {
+              return (
+                <Collapse.Panel
+                  header={file?.filename || "Загрузка..."}
+                  key={mediaFileId}
+                >
+                  <p>Загрузка транскрипта...</p>
+                </Collapse.Panel>
+              );
+            }
+
+            if (transcriptQuery.isError) {
+              return (
+                <Collapse.Panel
+                  header={file?.filename || "Ошибка"}
+                  key={mediaFileId}
+                >
+                  <p className="text-red-500">Ошибка загрузки транскрипта</p>
+                </Collapse.Panel>
+              );
+            }
+
+            const url =
+              fileQueries[batch.files.findIndex((f) => f.id === mediaFileId)]
+                ?.data;
+            const transcriptData = transcriptQuery.data;
+
+            return (
+              <Collapse.Panel
+                header={
+                  <div className="flex flex-col">
+                    <span>{file?.filename}</span>
+                    <small className="text-gray-500">
+                      Нажмите, чтобы посмотреть транскрипт
+                    </small>
+                  </div>
+                }
+                key={mediaFileId}
+              >
+                {/* Аудиоплеер */}
+                <Row gutter={16} className="mb-4">
+                  <Col xs={24}>
+                    <audio key={url} controls style={{ width: "100%" }}>
+                      <source src={url} type="audio/mpeg" />
+                      Ваш браузер не поддерживает аудио.
+                    </audio>
+                  </Col>
+                </Row>
+
+                {/* Транскрипт */}
+                <Card size="small" title="Транскрипт">
+                  <div className="space-y-2">
+                    {transcriptData && transcriptData.length > 0 ? (
+                      transcriptData.map(
+                        (fragment: TranscriptsMediaResponse, i: number) => (
+                          <div key={i} className="bg-gray-100 p-3 rounded">
+                            <div className="font-bold">
+                              {new Date(fragment.begin)
+                                .toISOString()
+                                .split("T")[1]
+                                .slice(0, 8)}{" "}
+                              —{" "}
+                              {new Date(fragment.end)
+                                .toISOString()
+                                .split("T")[1]
+                                .slice(0, 8)}
+                            </div>
+                            <div>{fragment.text}</div>
+                          </div>
+                        )
+                      )
+                    ) : (
+                      <div>Нет транскрипта</div>
+                    )}
+                  </div>
+                </Card>
+              </Collapse.Panel>
+            );
+          })}
+        </Collapse>
+      </Card>
       <Card title="Прикрепленные файлы">
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-2">Видео</h3>
@@ -237,7 +350,9 @@ function OverviewComponent() {
                       <span className="truncate">{file.filename}</span>
                       <Button
                         type="link"
-                        onClick={() => downloadFile(url as string, file.filename)}
+                        onClick={() =>
+                          downloadFile(url as string, file.filename)
+                        }
                       >
                         Скачать
                       </Button>
