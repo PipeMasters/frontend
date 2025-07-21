@@ -12,41 +12,24 @@ import { useUploadFile } from "../features/file/useUploadFile";
 import { FileType, FILE_TYPE_MAP } from "../services/file/model";
 import { Tooltip } from "antd";
 import { QuestionCircleOutlined } from "@ant-design/icons";
-
-const withRetry = async <T,>(
-  fn: () => Promise<T>,
-  maxRetries: number = 3,
-  delay: number = 1000
-): Promise<T> => {
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      return await fn();
-    } catch (error) {
-      if (attempt === maxRetries) throw error;
-      await new Promise((resolve) => setTimeout(resolve, delay * attempt));
-    }
-  }
-  throw new Error("Unexpected error in withRetry");
-};
+import { getFileDuration } from "../utils/fileDuration";
+import { calculateFileHash } from "../utils/fileHash";
+import { VALID_EXTENSIONS } from "../utils/validExtensions";
 
 export default function UploadFileForm({ fileId }: { fileId: number }) {
   const [form] = Form.useForm();
   const { uploadFileAsync, isPending } = useUploadFile(fileId);
 
   const MAX_FILES = 5;
-  const MAX_RETRIES = 10;
-  const RETRY_DELAY = 5000;
   const [files, setFiles] = useState<File[]>([]);
   const [activeUploads, setActiveUploads] = useState<number>(0);
 
   const onFinish = async (values: any) => {
     const { filenameTemplate, startIndex = 1 } = values;
-
     if (!files.length) {
       notification.error({ message: "Ошибка", description: "Выберите файлы" });
       return;
     }
-
     if (files.length > MAX_FILES) {
       notification.warning({
         message: "Много файлов",
@@ -78,7 +61,6 @@ export default function UploadFileForm({ fileId }: { fileId: number }) {
 
         const index = startIdx + i;
         const filename = `${filenameTemplate.replace("{{index}}", index.toString())}.${ext}`;
-
         const key = `upload-${originalName}-${Math.random().toString(36).substring(7)}`;
 
         notification.info({
@@ -89,21 +71,31 @@ export default function UploadFileForm({ fileId }: { fileId: number }) {
         });
 
         try {
-          await withRetry(
-            async () => {
-              await uploadFileAsync({
-                fileData: {
-                  filename,
-                  fileType: guessedType,
-                  uploadBatchId: fileId,
-                },
-                file,
-                onProgress: (progress) => setProgress(key, progress),
-              });
+          const hash = await calculateFileHash(file);
+          let duration: number | undefined;
+          if (
+            guessedType === FileType.VIDEO ||
+            guessedType === FileType.AUDIO
+          ) {
+            try {
+              duration = await getFileDuration(file);
+            } catch (err) {
+              console.warn(`Не удалось получить длительность для ${file.name}`);
+            }
+          }
+
+          await uploadFileAsync({
+            fileData: {
+              filename,
+              fileType: guessedType,
+              uploadBatchId: fileId,
+              size: file.size,
+              duration,
+              hash,
             },
-            MAX_RETRIES,
-            RETRY_DELAY
-          );
+            file,
+            onProgress: (progress) => setProgress(key, progress),
+          });
 
           notification.success({
             key,
@@ -113,13 +105,12 @@ export default function UploadFileForm({ fileId }: { fileId: number }) {
           });
         } catch (error: any) {
           const status = error?.response?.status;
-
           if (status === 409) {
             notification.warning({
               key,
               message: `Файл "${filename}" уже существует`,
-              description: `Файл "${originalName}" не загружен так как файл с таким именем уже существует.`,
-              duration: 3,
+              description: `Файл "${originalName}" не загружен, так как файл с таким именем уже существует.`,
+              duration: 5,
             });
           } else {
             notification.error({
@@ -187,7 +178,7 @@ export default function UploadFileForm({ fileId }: { fileId: number }) {
               multiple
               beforeUpload={beforeUpload}
               showUploadList={false}
-              accept="*"
+              accept={VALID_EXTENSIONS}
             >
               <Button>Выбрать файлы</Button>
             </Upload>

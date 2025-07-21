@@ -1,4 +1,4 @@
-  export interface TrainResponse {
+export interface TrainResponse {
     id?: number;
     trainNumber: number;
     routeMessage: string;
@@ -15,3 +15,4 @@
   updatedRecords: number;
   errorMessages: string[];
 }
+

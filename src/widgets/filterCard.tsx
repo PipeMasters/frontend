@@ -33,7 +33,6 @@ export default function FilterCard({ onFilter }: FilterCardProps) {
   }, [filters, form]);
 
   const onFinish = (values: any) => {
-    console.log("Фильтр применён:", values);
 
     const keywordsString = Array.isArray(values.keywords)
       ? values.keywords.join(", ")
@@ -51,6 +50,8 @@ export default function FilterCard({ onFilter }: FilterCardProps) {
       arrivalDateTo: values.arrivalDateRange?.[1]?.format("YYYY-MM-DD"),
       createdFrom: values.createdDateRange?.[0]?.toISOString(),
       createdTo: values.createdDateRange?.[1]?.toISOString(),
+      page: filters.page,
+      size: filters.size,
     };
 
     setFilters(params);
