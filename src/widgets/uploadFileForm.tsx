@@ -16,29 +16,11 @@ import { getFileDuration } from "../utils/fileDuration";
 import { calculateFileHash } from "../utils/fileHash";
 import { VALID_EXTENSIONS } from "../utils/validExtensions";
 
-const withRetry = async <T,>(
-  fn: () => Promise<T>,
-  maxRetries: number = 3,
-  delay: number = 1000
-): Promise<T> => {
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      return await fn();
-    } catch (error) {
-      if (attempt === maxRetries) throw error;
-      await new Promise((resolve) => setTimeout(resolve, delay * attempt));
-    }
-  }
-  throw new Error("Unexpected error in withRetry");
-};
-
 export default function UploadFileForm({ fileId }: { fileId: number }) {
   const [form] = Form.useForm();
   const { uploadFileAsync, isPending } = useUploadFile(fileId);
 
   const MAX_FILES = 5;
-  const MAX_RETRIES = 10;
-  const RETRY_DELAY = 5000;
   const [files, setFiles] = useState<File[]>([]);
   const [activeUploads, setActiveUploads] = useState<number>(0);
 
@@ -102,24 +84,18 @@ export default function UploadFileForm({ fileId }: { fileId: number }) {
             }
           }
 
-          await withRetry(
-            async () => {
-              await uploadFileAsync({
-                fileData: {
-                  filename,
-                  fileType: guessedType,
-                  uploadBatchId: fileId,
-                  size: file.size,
-                  duration,
-                  hash,
-                },
-                file,
-                onProgress: (progress) => setProgress(key, progress),
-              });
+          await uploadFileAsync({
+            fileData: {
+              filename,
+              fileType: guessedType,
+              uploadBatchId: fileId,
+              size: file.size,
+              duration,
+              hash,
             },
-            MAX_RETRIES,
-            RETRY_DELAY
-          );
+            file,
+            onProgress: (progress) => setProgress(key, progress),
+          });
 
           notification.success({
             key,
@@ -134,7 +110,7 @@ export default function UploadFileForm({ fileId }: { fileId: number }) {
               key,
               message: `Файл "${filename}" уже существует`,
               description: `Файл "${originalName}" не загружен, так как файл с таким именем уже существует.`,
-              duration: 3,
+              duration: 5,
             });
           } else {
             notification.error({

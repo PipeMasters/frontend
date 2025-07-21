@@ -7,6 +7,8 @@ import type { BatchQueryParams } from "../services/batch";
 import { useBatches } from "../features/batch/useBatches";
 import ModalDropdownButton from "../widgets/modalButton";
 import { useFilterActions, useFilterState } from "../store/filterStore";
+import { useGetBatchTranscript, useGetMediaTranscript, useGetTranscript } from "../features/transcripts";
+
 
 export const Route = createFileRoute("/")({
   component: RouteComponent,
@@ -17,7 +19,17 @@ function RouteComponent() {
   const { setFilters } = useFilterActions();
 
   const { data: batch } = useBatches(filterParams);
-
+  const { data: globalResults, isLoading: isLoadingGlobal } = useGetTranscript(
+    "здравствуйте",
+    true
+  );
+  const { data: mediaResults, isLoading: isLoadingMedia } =
+    useGetMediaTranscript(2);
+  const { data: batchResults, isLoading: isLoadingBatch } =
+    useGetBatchTranscript(2, "здравствуйте");
+  console.log("batchResults", batchResults);
+  console.log("mediaResults", mediaResults);
+  console.log("globalResults", globalResults);
   const handleFilter = (params: BatchQueryParams) => {
     setFilters({
       ...params,
