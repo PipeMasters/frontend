@@ -220,7 +220,6 @@ function OverviewComponent() {
                 }
                 key={mediaFileId}
               >
-                {/* Аудиоплеер */}
                 <Row gutter={16} className="mb-4">
                   <Col xs={24}>
                     <audio key={url} controls style={{ width: "100%" }}>
@@ -229,8 +228,6 @@ function OverviewComponent() {
                     </audio>
                   </Col>
                 </Row>
-
-                {/* Транскрипт */}
                 <Card size="small" title="Транскрипт">
                   <div className="space-y-2">
                     {transcriptData && transcriptData.length > 0 ? (
@@ -400,48 +397,6 @@ function OverviewComponent() {
             })}
           </Row>
         </div>
-
-        {/* <div>
-          <h3 className="text-lg font-semibold mb-2">Прочие файлы</h3>
-          <Row gutter={[24, 24]}>
-            {fileQueries.map((query, index) => {
-              const file = batch.files[index];
-              const ext =
-                file.filename.split(".").pop()?.toLowerCase() || "other";
-              const fileType = FILE_TYPE_MAP[ext];
-
-              if (query.isLoading) return null;
-              if (query.isError) return null;
-
-              if (
-                fileType !== FileType.VIDEO &&
-                fileType !== FileType.AUDIO &&
-                fileType !== FileType.IMAGE &&
-                fileType !== FileType.DOCUMENT
-              ) {
-                const url = query.data;
-                return (
-                  <Col key={file.id} xs={24} sm={12} md={8} lg={6}>
-                    <div className="p-3 bg-white shadow rounded flex flex-col items-center">
-                      <span>📁 {file.filename}</span>
-                      <a
-                        href={url}
-                        download={file.filename}
-                        // target="_blank"
-                        // rel="noopener noreferrer"
-                        className="mt-2 block text-center text-blue-500 hover:text-blue-700"
-                      >
-                        Скачать
-                      </a>
-                    </div>
-                  </Col>
-                );
-              }
-
-              return null;
-            })}
-          </Row>
-        </div> */}
       </Card>
     </div>
   );

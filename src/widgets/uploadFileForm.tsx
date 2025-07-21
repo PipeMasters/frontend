@@ -129,7 +129,7 @@ export default function UploadFileForm({ fileId }: { fileId: number }) {
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ["batch", fileId] });
         queryClient.invalidateQueries({ queryKey: ["files"] });
-      }, 6000);
+      }, 4000);
     } catch (error) {
       notification.error({ message: "Не все файлы загружены" });
     } finally {
