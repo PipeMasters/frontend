@@ -1,13 +1,13 @@
 export interface TrainResponse {
-    id?: number;
-    trainNumber: number;
-    routeMessage: string;
-    consistCount: number;
-    chiefId: number;
-    branchId: number;
-  }
+  id?: number;
+  trainNumber: number;
+  routeMessage: string;
+  consistCount: number;
+  chiefId: number;
+  branchId: number;
+}
 
-  export interface TrainScheduleUploadResponse {
+export interface TrainScheduleUploadResponse {
   totalRecords: number;
   successfullyParsed: number;
   recordsWithError: number;
@@ -15,4 +15,3 @@ export interface TrainResponse {
   updatedRecords: number;
   errorMessages: string[];
 }
-

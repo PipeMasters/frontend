@@ -20,13 +20,13 @@ function RouteComponent() {
   const { setFilters } = useFilterActions();
 
   const { data: batch } = useBatches(filterParams);
-  const { data: globalResults, isLoading: isLoadingGlobal } = useGetTranscript(
+  const { data: globalResults } = useGetTranscript(
     "здравствуйте",
     true
   );
-  const { data: mediaResults, isLoading: isLoadingMedia } =
+  const { data: mediaResults} =
     useGetMediaTranscript(2);
-  const { data: batchResults, isLoading: isLoadingBatch } =
+  const { data: batchResults} =
     useGetBatchTranscript(2, "здравствуйте");
   console.log("batchResults", batchResults);
   console.log("mediaResults", mediaResults);
