@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
 
 export const Route = createFileRoute("/")({
@@ -11,6 +11,7 @@ function RouteComponent() {
   return (
     <div className="flex p-4 gap-10">
       <span>metrics</span>
+      <Link to="/home">Go to files</Link>
     </div>
   );
 }
