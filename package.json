@@ -11,6 +11,7 @@
     "gen:routes": "router-gen --watch"
   },
   "dependencies": {
+    "@ant-design/charts": "^2.6.1",
     "@ant-design/v5-patch-for-react-19": "^1.0.3",
     "@hookform/resolvers": "^5.1.1",
     "@tailwindcss/vite": "^4.1.10",
@@ -23,6 +24,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.58.1",
+    "recharts": "^3.1.0",
     "zod": "^3.25.67",
     "zustand": "^5.0.6",
     "zustand-persist": "^0.4.0"

@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Pagination } from "antd";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Button, Pagination } from "antd";
 import BatchVideo from "../widgets/batchVideo";
 import FilterCard from "../widgets/filterCard";
 import type { BatchQueryParams } from "../services/batch";
@@ -18,16 +18,12 @@ export const Route = createFileRoute("/home")({
 function RouteComponent() {
   const filterParams = useFilterState();
   const { setFilters } = useFilterActions();
+  const navigate = useNavigate();
 
   const { data: batch } = useBatches(filterParams);
-  const { data: globalResults } = useGetTranscript(
-    "здравствуйте",
-    true
-  );
-  const { data: mediaResults} =
-    useGetMediaTranscript(2);
-  const { data: batchResults} =
-    useGetBatchTranscript(2, "здравствуйте");
+  const { data: globalResults } = useGetTranscript("здравствуйте", true);
+  const { data: mediaResults } = useGetMediaTranscript(2);
+  const { data: batchResults } = useGetBatchTranscript(2, "здравствуйте");
   console.log("batchResults", batchResults);
   console.log("mediaResults", mediaResults);
   console.log("globalResults", globalResults);
@@ -52,6 +48,11 @@ function RouteComponent() {
       <div className="flex flex-col w-72 space-y-4">
         <FilterCard onFilter={handleFilter} />
         <ModalDropdownButton />
+        <Button
+          type="default"
+          onClick={() => navigate({ to: "/" })}>
+          Метрики
+        </Button>
       </div>
 
       <div className="flex-1">
