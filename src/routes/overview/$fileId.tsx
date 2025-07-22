@@ -220,8 +220,8 @@ function OverviewComponent() {
                   <div className="space-y-2">
                     {transcriptData && transcriptData.length > 0 ? (
                       transcriptData.map(
-                        (fragment: TranscriptsMediaResponse, i: number) => (
-                          <div key={i} className="bg-gray-100 p-3 rounded">
+                        (fragment: TranscriptsMediaResponse) => (
+                          <div key={fragment.id} className="bg-gray-100 p-3 rounded">
                             <div className="font-bold">
                               {new Date(fragment.begin)
                                 .toISOString()

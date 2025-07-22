@@ -4,6 +4,7 @@ export interface TranscriptsBatchResponse {
 }
 
 export interface TranscriptsMediaResponse {
+  id: number;
   begin: number;
   end: number;
   text: string;
