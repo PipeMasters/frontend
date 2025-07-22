@@ -51,7 +51,7 @@ function RouteComponent() {
         <Button
           type="default"
           onClick={() => navigate({ to: "/" })}>
-          Перейти к метрикам
+          Метрики
         </Button>
       </div>
 
