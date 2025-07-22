@@ -1,5 +1,5 @@
-import React from "react";
-import { Card, Select, Spin, Typography, Row, Col } from "antd";
+import React, { useState } from "react";
+import { Card, Select, Spin, Typography, Row, Col, Space } from "antd";
 import {
   PieChart,
   Pie,
@@ -30,7 +30,7 @@ const COLORS = [
 ];
 
 export default function MetricsDashboard() {
-  const [period, setPeriod] = React.useState<"week" | "month" | "year">("week");
+  const [period, setPeriod] = useState<"week" | "month" | "year">("week");
   const { data, isLoading } = useMetrics(period);
 
   const handleChange = (value: "week" | "month" | "year") => {
@@ -70,18 +70,30 @@ export default function MetricsDashboard() {
   return (
     <div className="flex flex-col gap-6 w-full">
       <Row justify="space-between" align="middle">
-        <Title level={3}>Метрики загрузок</Title>
-        <Select defaultValue={period} onChange={handleChange}>
-          <Option value="week">Неделя</Option>
-          <Option value="month">Месяц</Option>
-          <Option value="year">Год</Option>
-        </Select>
+        <Title level={3} style={{ margin: 0 }}>
+          Метрики загрузок
+        </Title>
+        <div className="flex items-center space-x-2">
+          <Typography.Text strong style={{ whiteSpace: "nowrap" }}>
+            Выберите период:
+          </Typography.Text>
+          <Select
+            defaultValue={period}
+            onChange={handleChange}
+            className="w-[120px]"
+            size="middle"
+          >
+            <Option value="week">Неделя</Option>
+            <Option value="month">Месяц</Option>
+            <Option value="year">Год</Option>
+          </Select>
+        </div>
       </Row>
-      
+
       <Row gutter={16}>
         <Col span={24}>
-          <Card title="Общий объём">
-            <p style={{ fontSize: 24, fontWeight: 600, color: "#52c41a" }}>
+          <Card title="Общий объём файлов">
+            <p className="text-2xl font-semibold">
               {(data.totalStorage / 1024 ** 2).toFixed(2)} MB
             </p>
           </Card>
@@ -142,10 +154,9 @@ export default function MetricsDashboard() {
         </Col>
       </Row>
 
-    
       <Row gutter={16}>
         <Col span={24}>
-          <Card title="Текущий период vs Предыдущий период">
+          <Card title="Предыдущий период - Текущий период">
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={comparisonData}>
                 <CartesianGrid strokeDasharray="3 3" />
