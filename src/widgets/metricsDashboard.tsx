@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Card, Select, Spin, Typography, Row, Col, Space } from "antd";
+import { useState } from "react";
+import { Card, Select, Spin, Typography, Row, Col } from "antd";
 import {
   PieChart,
   Pie,

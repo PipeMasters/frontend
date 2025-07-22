@@ -1,16 +1,15 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Button, Pagination } from "antd";
+import { useState, useEffect, useMemo } from "react";
+import { createFileRoute, useNavigate  } from "@tanstack/react-router";
+import { Pagination, Card, Button } from "antd";
 import BatchVideo from "../widgets/batchVideo";
 import FilterCard from "../widgets/filterCard";
-import type { BatchQueryParams } from "../services/batch";
-import { useBatches } from "../features/batch/useBatches";
 import ModalDropdownButton from "../widgets/modalButton";
-import { useFilterActions, useFilterState } from "../store/filterStore";
-import {
-  useGetBatchTranscript,
-  useGetMediaTranscript,
-  useGetTranscript,
-} from "../features/transcripts";
+import { useBatches } from "../features/batch/useBatches";
+import { useGetTranscript } from "../features/transcripts/useGetTranscript";
+import { useFilterState, useFilterActions } from "../store/filterStore";
+import SearchInput from "../widgets/searchInput";
+import SearchResults from "../widgets/searchResults";
+
 export const Route = createFileRoute("/home")({
   component: RouteComponent,
 });
@@ -20,35 +19,63 @@ function RouteComponent() {
   const { setFilters } = useFilterActions();
   const navigate = useNavigate();
 
-  const { data: batch } = useBatches(filterParams);
-  const { data: globalResults } = useGetTranscript("здравствуйте", true);
-  const { data: mediaResults } = useGetMediaTranscript(2);
-  const { data: batchResults } = useGetBatchTranscript(2, "здравствуйте");
-  console.log("batchResults", batchResults);
-  console.log("mediaResults", mediaResults);
-  console.log("globalResults", globalResults);
-  const handleFilter = (params: BatchQueryParams) => {
-    setFilters({
-      ...params,
-      page: 0,
-      size: filterParams.size,
-    });
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [lastSearchQuery, setLastSearchQuery] = useState<string | null>(null);
+
+  const {
+    data: searchResults,
+    refetch: refetchSearch,
+    isFetching,
+  } = useGetTranscript(lastSearchQuery || "");
+
+  const { data: allBatches } = useBatches(filterParams);
+
+  const filteredBatches = useMemo(() => {
+    if (!searchResults || !allBatches?.content) return [];
+    const matchingBatchIds = new Set(searchResults.map((result) => result.id));
+    return allBatches.content.filter((batch) => matchingBatchIds.has(batch.id));
+  }, [searchResults, allBatches]);
+
+  const handleSearch = () => {
+    const trimmedQuery = searchQuery.trim();
+    if (trimmedQuery) {
+      setLastSearchQuery(trimmedQuery);
+      // refetchSearch();
+      // clearSearch();
+    } else if (trimmedQuery === "") {
+      clearSearch();
+    }
   };
 
-  const onPageChange = (page: number, pageSize: number) => {
+  const clearSearch = () => {
+    setSearchQuery("");
+    setLastSearchQuery(null);
+  };
+
+  const onPageChange = (page: number, pageSize?: number) => {
     setFilters({
       ...filterParams,
       page: page - 1,
-      size: pageSize,
+      size: pageSize ?? filterParams.size,
     });
   };
+
+  const showSearchResults = lastSearchQuery !== null && searchResults;
+  const showNoResults = lastSearchQuery !== null && searchResults?.length === 0;
+  const showRegularBatches = lastSearchQuery === null;
+
+  useEffect(() => {
+    if (lastSearchQuery !== null) {
+      refetchSearch();
+    }
+  }, [lastSearchQuery, refetchSearch]);
 
   return (
     <div className="flex p-4 gap-10">
       <div className="flex flex-col w-72 space-y-4">
-        <FilterCard onFilter={handleFilter} />
+        <FilterCard onFilter={setFilters} />
         <ModalDropdownButton />
-        <Button
+         <Button
           type="default"
           onClick={() => navigate({ to: "/" })}>
           Метрики
@@ -56,19 +83,39 @@ function RouteComponent() {
       </div>
 
       <div className="flex-1">
-        <BatchVideo data={batch?.content ?? []} />
+        <SearchInput
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          handleSearch={handleSearch}
+          isFetching={isFetching}
+          clearSearch={clearSearch}
+        />
 
-        <div className="flex justify-center mt-4">
-          <Pagination
-            current={(filterParams.page ?? 0) + 1}
-            pageSize={filterParams.size}
-            total={batch?.totalElements ?? 0}
-            showSizeChanger
-            pageSizeOptions={["5", "10", "20", "50"]}
-            onChange={onPageChange}
-            onShowSizeChange={onPageChange}
+        {showSearchResults && searchResults.length > 0 ? (
+          <SearchResults
+            searchResults={searchResults}
+            filteredBatches={filteredBatches}
           />
-        </div>
+        ) : showNoResults ? (
+          <Card>
+            <p>По вашему запросу ничего не найдено.</p>
+          </Card>
+        ) : showRegularBatches ? (
+          <>
+            <BatchVideo data={allBatches?.content ?? []} />
+            <div className="flex justify-center mt-4">
+              <Pagination
+                current={(filterParams.page ?? 0) + 1}
+                pageSize={filterParams.size}
+                total={allBatches?.totalElements ?? 0}
+                showSizeChanger
+                pageSizeOptions={["5", "10", "20", "50"]}
+                onChange={onPageChange}
+                onShowSizeChange={onPageChange}
+              />
+            </div>
+          </>
+        ) : null}
       </div>
     </div>
   );
