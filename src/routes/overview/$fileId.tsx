@@ -8,7 +8,6 @@ import { FILE_TYPE_MAP, FileType } from "../../services/file";
 import UploadFileForm from "../../widgets/uploadFileForm";
 import { useGetMediaTranscript } from "../../features/transcripts";
 import type { TranscriptsMediaResponse } from "../../services/transcripts";
-import { useState } from "react";
 import { Collapse } from "antd";
 export const Route = createFileRoute("/overview/$fileId")({
   component: OverviewComponent,
@@ -18,18 +17,7 @@ function OverviewComponent() {
   const { fileId } = Route.useParams();
 
   const { data: batch, isLoading, isError } = useGetBatch(parseInt(fileId));
-  const [openTranscripts, setOpenTranscripts] = useState<
-    Record<number, boolean>
-  >({});
 
-  const toggleTranscript = (mediaFileId: number) => {
-    setOpenTranscripts(
-      (prev: Record<number, boolean>): Record<number, boolean> => ({
-        ...prev,
-        [mediaFileId]: !prev[mediaFileId],
-      })
-    );
-  };
   const trainId = batch?.trainId;
   const trainQuery = useGetTrain(trainId ?? 1);
   const train = trainQuery.data;

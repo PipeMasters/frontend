@@ -6,8 +6,8 @@ export const useGetTranscript = (
   uploadBatchSearch: boolean = true
 ) => {
   return useQuery({
-    queryKey: ["transcript", query, uploadBatchSearch],
+    queryKey: ["transcript-global", query, uploadBatchSearch],
     queryFn: () => searchTranscripts(query, uploadBatchSearch),
-    enabled: !!query && query.length > 0,
+    enabled: false,
   });
 };
