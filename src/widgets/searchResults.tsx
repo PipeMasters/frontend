@@ -3,7 +3,6 @@ import { List, Card, Button, Tag } from "antd";
 import type { BatchVideo } from "../services/batch";
 import type { TranscriptsSearchResponse } from "../services/transcripts";
 
-
 interface SearchResultsProps {
   searchResults: TranscriptsSearchResponse[];
   filteredBatches: BatchVideo[];
@@ -15,7 +14,8 @@ const SearchResults: FC<SearchResultsProps> = ({
 }) => (
   <>
     <h2 className="text-xl font-semibold mb-4">
-      Найдено в {searchResults.length} записях
+      Найдено в {searchResults.length}{" "}
+      {searchResults.length === 1 ? "записи" : "записях"}
     </h2>
     <List
       dataSource={filteredBatches}
@@ -23,7 +23,8 @@ const SearchResults: FC<SearchResultsProps> = ({
         const result = searchResults.find((r) => r.id === batch.id);
         const totalCount: number =
           result?.files.reduce(
-            (acc: number, f: { fragmentsIds: number[] }) => acc + f.fragmentsIds.length,
+            (acc: number, f: { fragmentsIds: number[] }) =>
+              acc + f.fragmentsIds.length,
             0
           ) || 0;
 
@@ -32,7 +33,8 @@ const SearchResults: FC<SearchResultsProps> = ({
             <Card className="w-full">
               <div className="flex justify-between items-center">
                 <div>
-                  <h3 className="font-bold">Поезд №{batch.trainNumber}</h3>
+                  <h3 className="font-bold">Запись №{batch.id}</h3>
+                  <h5 className="font-bold">Поезд №{batch.trainNumber}</h5>
                   <p>Начальник: {batch.chiefName}</p>
                   <p>
                     Отправлен:{" "}

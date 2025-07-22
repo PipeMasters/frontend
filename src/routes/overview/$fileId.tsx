@@ -6,15 +6,28 @@ import { getCauseLabel } from "../../services/batch";
 import { useGetFileUrls } from "../../features/file";
 import { FILE_TYPE_MAP, FileType } from "../../services/file";
 import UploadFileForm from "../../widgets/uploadFileForm";
-import { useGetMediaTranscript } from "../../features/transcripts";
+import {
+  useGetBatchTranscript,
+  useGetMediaTranscript,
+} from "../../features/transcripts";
 import type { TranscriptsMediaResponse } from "../../services/transcripts";
 import { Collapse } from "antd";
+import { useEffect, useRef, useState } from "react";
+import SearchInput from "../../widgets/searchInput";
+import { ArrowUpOutlined, ArrowDownOutlined } from "@ant-design/icons";
 export const Route = createFileRoute("/overview/$fileId")({
   component: OverviewComponent,
 });
 
 function OverviewComponent() {
   const { fileId } = Route.useParams();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [lastSearchQuery, setLastSearchQuery] = useState<string | null>(null);
+  const [activeSearchResults, setActiveSearchResults] = useState<{
+    [key: number]: number[];
+  }>({});
+  const [highlightedText, setHighlightedText] = useState("");
+  const fragmentsRef = useRef<{ [key: number]: HTMLDivElement | null }>({});
 
   const { data: batch, isLoading, isError } = useGetBatch(parseInt(fileId));
 
@@ -34,6 +47,130 @@ function OverviewComponent() {
       .map((file) => file.id) ?? [];
 
   const transcriptQueries = useGetMediaTranscript(audioFileIds);
+  const batchTranscriptQuery = useGetBatchTranscript(
+    parseInt(fileId),
+    lastSearchQuery || ""
+  );
+
+  useEffect(() => {
+    if (batchTranscriptQuery.data && lastSearchQuery) {
+      const results: { [key: number]: number[] } = {};
+      const fragments: { id: number; mediaFileId: number }[] = [];
+
+      batchTranscriptQuery.data.forEach((item) => {
+        results[item.mediafileId] = item.fragmentsIds;
+        item.fragmentsIds.forEach((fragmentId) => {
+          fragments.push({
+            id: fragmentId,
+            mediaFileId: item.mediafileId,
+          });
+        });
+      });
+
+      setActiveSearchResults(results);
+      setHighlightedText(lastSearchQuery);
+      setAllFoundFragments(fragments);
+      setCurrentResultIndex(0);
+
+      if (fragments.length > 0) {
+        scrollToFragment(fragments[0].id, fragments[0].mediaFileId);
+      }
+    } else if (lastSearchQuery === null) {
+      setActiveSearchResults({});
+      setHighlightedText("");
+      setAllFoundFragments([]);
+      setCurrentResultIndex(0);
+    }
+  }, [batchTranscriptQuery.data, lastSearchQuery]);
+
+  const scrollToFragment = (fragmentId: number, mediaFileId: number) => {
+    const mediaIndex = audioFileIds.findIndex((id) => id === mediaFileId);
+    if (mediaIndex !== -1 && transcriptQueries[mediaIndex].data) {
+      const fragment = transcriptQueries[mediaIndex].data?.find(
+        (f: TranscriptsMediaResponse) => f.id === fragmentId
+      );
+
+      if (fragment && fragmentsRef.current[fragment.id]) {
+        fragmentsRef.current[fragment.id]?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }
+    }
+  };
+  const [currentResultIndex, setCurrentResultIndex] = useState(0);
+  const [allFoundFragments, setAllFoundFragments] = useState<
+    {
+      id: number;
+      mediaFileId: number;
+    }[]
+  >([]);
+
+  const handleNextResult = () => {
+    if (currentResultIndex < allFoundFragments.length - 1) {
+      const newIndex = currentResultIndex + 1;
+      setCurrentResultIndex(newIndex);
+      const fragment = allFoundFragments[newIndex];
+      scrollToFragment(fragment.id, fragment.mediaFileId);
+    }
+  };
+
+  const handlePrevResult = () => {
+    if (currentResultIndex > 0) {
+      const newIndex = currentResultIndex - 1;
+      setCurrentResultIndex(newIndex);
+      const fragment = allFoundFragments[newIndex];
+      scrollToFragment(fragment.id, fragment.mediaFileId);
+    }
+  };
+
+  const highlightText = (
+    text: string,
+    highlight: string,
+    fragmentId: number,
+    mediaFileId: number
+  ) => {
+    if (!highlight.trim()) return text;
+
+    const isFoundFragment =
+      activeSearchResults[mediaFileId]?.includes(fragmentId);
+
+    if (!isFoundFragment) {
+      return text;
+    }
+
+    const escapedHighlight = highlight.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = new RegExp(`(${escapedHighlight})`, "gi");
+    const parts = text.split(regex);
+
+    return (
+      <span>
+        {parts.map((part, i) =>
+          regex.test(part) ? (
+            <mark key={i} className="bg-yellow-200">
+              {part}
+            </mark>
+          ) : (
+            part
+          )
+        )}
+      </span>
+    );
+  };
+
+  const handleSearch = () => {
+    const trimmedQuery = searchQuery.trim();
+    if (trimmedQuery) {
+      setLastSearchQuery(trimmedQuery);
+    } else {
+      clearSearch();
+    }
+  };
+
+  const clearSearch = () => {
+    setSearchQuery("");
+    setLastSearchQuery(null);
+  };
 
   if (isLoading || trainQuery.isLoading) {
     return <div>Загрузка...</div>;
@@ -134,6 +271,62 @@ function OverviewComponent() {
 
   return (
     <div className="flex flex-col p-10 pt-0 gap-8">
+      {allFoundFragments.length > 0 && (
+        <div className="fixed right-8 bottom-8 flex flex-col gap-2 z-50 items-center">
+          <Button
+            type="primary"
+            icon={<ArrowUpOutlined />}
+            onClick={currentResultIndex <= 0 ? undefined : handlePrevResult}
+            style={{
+              backgroundColor: currentResultIndex <= 0 ? "#e5e7eb" : "#1677ff",
+              color: currentResultIndex <= 0 ? "#888" : "#fff",
+              borderColor: currentResultIndex <= 0 ? "#e5e7eb" : "#1677ff",
+              opacity: currentResultIndex <= 0 ? 0.8 : 1,
+              pointerEvents: currentResultIndex <= 0 ? "none" : "auto",
+            }}
+          />
+          <Button
+            type="primary"
+            icon={<ArrowDownOutlined />}
+            onClick={
+              currentResultIndex >= allFoundFragments.length - 1
+                ? undefined
+                : handleNextResult
+            }
+            style={{
+              backgroundColor:
+                currentResultIndex >= allFoundFragments.length - 1
+                  ? "#e5e7eb"
+                  : "#1677ff",
+              color:
+                currentResultIndex >= allFoundFragments.length - 1
+                  ? "#888"
+                  : "#fff",
+              borderColor:
+                currentResultIndex >= allFoundFragments.length - 1
+                  ? "#e5e7eb"
+                  : "#1677ff",
+              opacity:
+                currentResultIndex >= allFoundFragments.length - 1 ? 0.5 : 1,
+              pointerEvents:
+                currentResultIndex >= allFoundFragments.length - 1
+                  ? "none"
+                  : "auto",
+            }}
+          />
+          <Button
+            type="primary"
+            disabled
+            style={{
+              cursor: "default",
+              backgroundColor: "#1677ff",
+              color: "#fff",
+            }}
+          >
+            {`${currentResultIndex + 1}/${allFoundFragments.length}`}
+          </Button>
+        </div>
+      )}
       <div className="flex flex-col pt-4">
         <Card title="Подробная информация о записи">
           <Table
@@ -163,11 +356,23 @@ function OverviewComponent() {
         <UploadFileForm fileId={parseInt(fileId)} />
       </div>
 
-      <Card title="Аудиозаписи с транскриптами">
+      <Card
+        title="Аудиозаписи с транскриптами"
+        extra={
+          <SearchInput
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            handleSearch={handleSearch}
+            isFetching={batchTranscriptQuery.isFetching}
+            clearSearch={clearSearch}
+          />
+        }
+      >
         <Collapse accordion>
           {audioFileIds.map((mediaFileId, index) => {
             const file = batch.files.find((f) => f.id === mediaFileId);
             const transcriptQuery = transcriptQueries[index];
+            const isSearchActive = activeSearchResults[mediaFileId]?.length > 0;
 
             if (transcriptQuery.isLoading) {
               return (
@@ -199,8 +404,15 @@ function OverviewComponent() {
             return (
               <Collapse.Panel
                 header={
-                  <div className="flex flex-col">
-                    <span>{file?.filename}</span>
+                  <div className="flex flex-col ">
+                    <span>
+                      {file?.filename}
+                      {isSearchActive && (
+                        <Tag color="green" className="!ml-2">
+                          Найдено: {activeSearchResults[mediaFileId]?.length}
+                        </Tag>
+                      )}
+                    </span>
                     <small className="text-gray-500">
                       Нажмите, чтобы посмотреть транскрипт
                     </small>
@@ -220,22 +432,47 @@ function OverviewComponent() {
                   <div className="space-y-2">
                     {transcriptData && transcriptData.length > 0 ? (
                       transcriptData.map(
-                        (fragment: TranscriptsMediaResponse) => (
-                          <div key={fragment.id} className="bg-gray-100 p-3 rounded">
-                            <div className="font-bold">
-                              {new Date(fragment.begin)
-                                .toISOString()
-                                .split("T")[1]
-                                .slice(0, 8)}{" "}
-                              —{" "}
-                              {new Date(fragment.end)
-                                .toISOString()
-                                .split("T")[1]
-                                .slice(0, 8)}
+                        (fragment: TranscriptsMediaResponse) => {
+                          const isHighlighted = activeSearchResults[
+                            mediaFileId
+                          ]?.includes(fragment.id);
+
+                          return (
+                            <div
+                              key={fragment.id}
+                              ref={(el) => {
+                                fragmentsRef.current[fragment.id] = el;
+                              }}
+                              className={`p-3 rounded ${
+                                isHighlighted
+                                  ? "bg-blue-50 border border-blue-200"
+                                  : "bg-gray-100"
+                              }`}
+                            >
+                              <div className="font-bold">
+                                {new Date(fragment.begin)
+                                  .toISOString()
+                                  .split("T")[1]
+                                  .slice(0, 8)}{" "}
+                                —{" "}
+                                {new Date(fragment.end)
+                                  .toISOString()
+                                  .split("T")[1]
+                                  .slice(0, 8)}
+                              </div>
+                              <div>
+                                {highlightedText
+                                  ? highlightText(
+                                      fragment.text,
+                                      highlightedText,
+                                      fragment.id,
+                                      mediaFileId
+                                    )
+                                  : fragment.text}
+                              </div>
                             </div>
-                            <div>{fragment.text}</div>
-                          </div>
-                        )
+                          );
+                        }
                       )
                     ) : (
                       <div>Нет транскрипта</div>
@@ -265,7 +502,10 @@ function OverviewComponent() {
                 return (
                   <Col key={file.id} xs={24} sm={12} md={8} lg={6}>
                     <div className="p-3 bg-white shadow rounded">
-                      <video controls style={{ width: "100%" }}>
+                      <video
+                        controls
+                        className="w-full h-[180px] object-cover bg-black"
+                      >
                         <source src={url} type="video/mp4" />
                         Your browser does not support the video tag.
                       </video>
@@ -274,7 +514,6 @@ function OverviewComponent() {
                   </Col>
                 );
               }
-
               return null;
             })}
           </Row>
