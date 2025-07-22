@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { createFileRoute } from "@tanstack/react-router";
-import { Pagination, Card } from "antd";
+import { createFileRoute, useNavigate  } from "@tanstack/react-router";
+import { Pagination, Card, Button } from "antd";
 import BatchVideo from "../widgets/batchVideo";
 import FilterCard from "../widgets/filterCard";
 import ModalDropdownButton from "../widgets/modalButton";
@@ -17,6 +17,7 @@ export const Route = createFileRoute("/home")({
 function RouteComponent() {
   const filterParams = useFilterState();
   const { setFilters } = useFilterActions();
+  const navigate = useNavigate();
 
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [lastSearchQuery, setLastSearchQuery] = useState<string | null>(null);
