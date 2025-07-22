@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import MetricsDashboard from "../widgets/metricsDashboard";
 
 
 export const Route = createFileRoute("/")({
@@ -6,10 +7,9 @@ export const Route = createFileRoute("/")({
 });
 
 function RouteComponent() {
- 
   return (
-    <div className="flex p-4 gap-10">
-      <span>metrics</span>
+    <div className="p-4">
+      <MetricsDashboard />
       <Link to="/home">Go to files</Link>
     </div>
   );
