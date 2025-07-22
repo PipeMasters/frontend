@@ -74,6 +74,11 @@ function RouteComponent() {
       <div className="flex flex-col w-72 space-y-4">
         <FilterCard onFilter={setFilters} />
         <ModalDropdownButton />
+         <Button
+          type="default"
+          onClick={() => navigate({ to: "/" })}>
+          Метрики
+        </Button>
       </div>
 
       <div className="flex-1">
