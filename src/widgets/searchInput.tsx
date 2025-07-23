@@ -16,7 +16,7 @@ const SearchInput: FC<SearchInputProps> = ({
   isFetching,
   clearSearch,
 }) => (
-  <div className="max-w-full">
+  <div className="max-w-3xl">
     <Input.Search
       placeholder="Поиск по транскриптам"
       value={searchQuery}
