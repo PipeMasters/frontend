@@ -350,7 +350,7 @@ function OverviewComponent() {
       </div>
 
       <Card
-        title="Аудиозаписи с транскриптами"
+        title="Текст коммуникаций"
         extra={
           <SearchInput
             searchQuery={searchQuery}
@@ -378,7 +378,7 @@ function OverviewComponent() {
                   header={audioFile?.filename || "Загрузка..."}
                   key={mediaFileId}
                 >
-                  <p>Загрузка транскрипта...</p>
+                  <p>Загрузка текста коммуникаций...</p>
                 </Collapse.Panel>
               );
             }
@@ -388,7 +388,7 @@ function OverviewComponent() {
                   header={audioFile?.filename || "Ошибка"}
                   key={mediaFileId}
                 >
-                  <p className="text-red-500">Ошибка загрузки транскрипта</p>
+                  <p className="text-red-500">Ошибка загрузки текста коммуникаций</p>
                 </Collapse.Panel>
               );
             }
@@ -424,7 +424,7 @@ function OverviewComponent() {
                       )}
                     </span>
                     <small className="text-gray-500 text-xs">
-                      Нажмите, чтобы посмотреть транскрипт
+                      Нажмите, чтобы посмотреть текст коммуникаций
                     </small>
                   </div>
                 }
@@ -506,7 +506,7 @@ function OverviewComponent() {
                         }
                       )
                     ) : (
-                      <div className="text-xs">Нет транскрипта</div>
+                      <div className="text-xs">Нет текста коммуникаций</div>
                     )}
                   </div>
                 </Card>
