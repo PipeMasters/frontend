@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Pagination, Card, Button } from "antd";
 import BatchVideo from "../widgets/batchVideo";
@@ -30,12 +30,6 @@ function RouteComponent() {
   } = useGetTranscript(lastSearchQuery || "");
 
   const { data: allBatches } = useBatches(filterParams);
-
-  const filteredBatches = useMemo(() => {
-    if (!searchResults || !allBatches?.content) return [];
-    const matchingBatchIds = new Set(searchResults.map((result) => result.id));
-    return allBatches.content.filter((batch) => matchingBatchIds.has(batch.id));
-  }, [searchResults, allBatches]);
 
   const handleSearch = () => {
     const trimmedQuery = searchQuery.trim();
@@ -97,7 +91,6 @@ function RouteComponent() {
         {showSearchResults && searchResults.length > 0 ? (
           <SearchResults
             searchResults={searchResults}
-            filteredBatches={filteredBatches}
           />
         ) : showNoResults ? (
           <Card>
