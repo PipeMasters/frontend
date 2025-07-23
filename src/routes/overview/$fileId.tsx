@@ -516,6 +516,46 @@ function OverviewComponent() {
         </Collapse>
       </Card>
       <Card title="Прикрепленные файлы">
+         <div className="mb-6">
+          <h3 className="text-lg font-semibold mb-2">Изображения</h3>
+          <Row gutter={[24, 24]}>
+            {fileQueries.map((query, index) => {
+              const file = batch.files[index];
+              const ext =
+                file.filename.split(".").pop()?.toLowerCase() || "other";
+              const fileType = FILE_TYPE_MAP[ext];
+
+              if (query.isLoading) return null;
+              if (query.isError) return null;
+
+              if (fileType === FileType.IMAGE) {
+                const url = query.data;
+                return (
+                  <Col key={file.id} xs={24} sm={12} md={8} lg={6}>
+                    <div className="p-3 bg-white shadow rounded flex flex-col">
+                      <img
+                        src={url}
+                        alt={file.filename}
+                        className="w-full h-40 object-contain mb-2"
+                      />
+                      <span className="truncate">{file.filename}</span>
+                      <Button
+                        type="link"
+                        onClick={() =>
+                          downloadFile(url as string, file.filename)
+                        }
+                      >
+                        Скачать
+                      </Button>
+                    </div>
+                  </Col>
+                );
+              }
+              return null;
+            })}
+          </Row>
+        </div>
+
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-2">Документы</h3>
           <Row gutter={[24, 24]}>
