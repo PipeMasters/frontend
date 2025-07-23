@@ -27,7 +27,7 @@ export default function BatchVideo({ data }: { data: BatchVideo[] }) {
               />
               <span className="text-lg">
                 Видеозапись № {video.id} от {formatDate(video.dateDeparted)} — {formatDate(video.dateArrived)}, поезд{" "}
-                {video.trainNumber}, начальник {video.chiefName}
+                {video.trainNumber}, филиал - {video.branch}, начальник {video.chiefName}
               </span>
             </div>
           </Link>

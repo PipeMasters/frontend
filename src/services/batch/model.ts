@@ -7,6 +7,7 @@ export interface BatchVideo {
   dateArrived: string;
   trainNumber: number;
   chiefName: string;
+  branch: string;
 }
 
 export interface FileInBatch {
@@ -14,8 +15,14 @@ export interface FileInBatch {
   filename: string;
   fileType: FileType;
   uploadedAt: string;
-  source: string;
+  source: {
+    id: number;
+    name: string;
+    filename: "string";
+    fileType: FileType;
+  };
 }
+
 
 export interface AbsenseInBatch {
   id?: number;

@@ -1,26 +1,21 @@
 import { type FC } from "react";
 import { List, Card, Button, Tag } from "antd";
-import type { BatchVideo } from "../services/batch";
 import type { TranscriptsSearchResponse } from "../services/transcripts";
 
 interface SearchResultsProps {
   searchResults: TranscriptsSearchResponse[];
-  filteredBatches?: BatchVideo[];
 }
 const SearchResults: FC<SearchResultsProps> = ({
   searchResults,
-  filteredBatches,
 }) => {
-  const batchesToRender =
-    filteredBatches && filteredBatches.length > 0
-      ? filteredBatches
-      : searchResults.map((result) => ({
-          id: result.id,
-          dateDeparted: result.dateDeparted,
-          dateArrived: result.dateArrived,
-          trainNumber: result.trainNumber,
-          chiefName: result.chiefName,
-        }));
+    const batchesToRender = searchResults.map((result) => ({
+    id: result.id,
+    dateDeparted: result.dateDeparted,
+    dateArrived: result.dateArrived,
+    trainNumber: result.trainNumber,
+    chiefName: result.chiefName,
+    branch: "Неизвестный филиал",
+  }));
 
   return (
     <>
