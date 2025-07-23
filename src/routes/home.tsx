@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { createFileRoute, useNavigate  } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Pagination, Card, Button } from "antd";
 import BatchVideo from "../widgets/batchVideo";
 import FilterCard from "../widgets/filterCard";
@@ -9,6 +9,7 @@ import { useGetTranscript } from "../features/transcripts/useGetTranscript";
 import { useFilterState, useFilterActions } from "../store/filterStore";
 import SearchInput from "../widgets/searchInput";
 import SearchResults from "../widgets/searchResults";
+import ImotioSwitch from "../widgets/imotioSwitch";
 
 export const Route = createFileRoute("/home")({
   component: RouteComponent,
@@ -75,22 +76,24 @@ function RouteComponent() {
       <div className="flex flex-col w-72 space-y-4">
         <FilterCard onFilter={setFilters} />
         <ModalDropdownButton />
-         <Button
-          type="default"
-          onClick={() => navigate({ to: "/" })}>
+        <Button type="default" onClick={() => navigate({ to: "/" })}>
           Метрики
         </Button>
       </div>
 
       <div className="flex-1">
-        <SearchInput
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          handleSearch={handleSearch}
-          isFetching={isFetching}
-          clearSearch={clearSearch}
-        />
-
+        <div className="flex flex-col sm:flex-row gap-4 items-center mb-6">
+          <div className="flex-1">
+            <SearchInput
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              handleSearch={handleSearch}
+              isFetching={isFetching}
+              clearSearch={clearSearch}
+            />
+          </div>
+          <ImotioSwitch />  
+        </div>
         {showSearchResults && searchResults.length > 0 ? (
           <SearchResults
             searchResults={searchResults}
