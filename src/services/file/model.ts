@@ -36,3 +36,4 @@ export interface FileRequest {
   duration?: number;
   hash: string;
 }
+

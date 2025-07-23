@@ -182,9 +182,9 @@ function OverviewComponent() {
 
   const tableData = [
     {
-      key: "directory",
-      label: "Папка загрузки",
-      value: batch.directory,
+      key: "id",
+      label: "Номер видеозаписи",
+      value: `№ ${batch.id}`,
     },
     {
       key: "createdAt",
@@ -230,13 +230,6 @@ function OverviewComponent() {
       key: "comment",
       label: "Комментарий",
       value: batch.comment || "—",
-    },
-    {
-      key: "keywords",
-      label: "Ключевые слова",
-      value: batch.keywords?.length
-        ? batch.keywords.map((kw) => <Tag key={kw}>{kw}</Tag>)
-        : "—",
     },
     {
       key: "archived",
@@ -370,25 +363,29 @@ function OverviewComponent() {
       >
         <Collapse accordion>
           {audioFileIds.map((mediaFileId, index) => {
-            const file = batch.files.find((f) => f.id === mediaFileId);
+            const audioFile = batch.files.find((f) => f.id === mediaFileId);
+
+            const linkedVideoFile = audioFile?.source
+              ? batch.files.find((f) => f.id === audioFile.source.id)
+              : null;
+
             const transcriptQuery = transcriptQueries[index];
             const isSearchActive = activeSearchResults[mediaFileId]?.length > 0;
 
             if (transcriptQuery.isLoading) {
               return (
                 <Collapse.Panel
-                  header={file?.filename || "Загрузка..."}
+                  header={audioFile?.filename || "Загрузка..."}
                   key={mediaFileId}
                 >
                   <p>Загрузка транскрипта...</p>
                 </Collapse.Panel>
               );
             }
-
             if (transcriptQuery.isError) {
               return (
                 <Collapse.Panel
-                  header={file?.filename || "Ошибка"}
+                  header={audioFile?.filename || "Ошибка"}
                   key={mediaFileId}
                 >
                   <p className="text-red-500">Ошибка загрузки транскрипта</p>
@@ -396,60 +393,94 @@ function OverviewComponent() {
               );
             }
 
-            const url =
-              fileQueries[batch.files.findIndex((f) => f.id === mediaFileId)]
-                ?.data;
+            const audioUrlQuery =
+              fileQueries[batch.files.findIndex((f) => f.id === mediaFileId)];
+            const audioUrl = audioUrlQuery?.data;
+
+            let videoUrl = null;
+            let videoUrlQuery = null;
+            if (linkedVideoFile) {
+              const videoIndex = batch.files.findIndex(
+                (f) => f.id === linkedVideoFile.id
+              );
+              if (videoIndex !== -1) {
+                videoUrlQuery = fileQueries[videoIndex];
+                videoUrl = videoUrlQuery?.data;
+              }
+            }
+
             const transcriptData = transcriptQuery.data;
 
             return (
               <Collapse.Panel
                 header={
-                  <div className="flex flex-col ">
+                  <div className="flex flex-col">
                     <span>
-                      {file?.filename}
+                      {audioFile?.filename?.replace(/\.[^/.]+$/, "")}{" "}
                       {isSearchActive && (
                         <Tag color="green" className="!ml-2">
                           Найдено: {activeSearchResults[mediaFileId]?.length}
                         </Tag>
                       )}
                     </span>
-                    <small className="text-gray-500">
+                    <small className="text-gray-500 text-xs">
                       Нажмите, чтобы посмотреть транскрипт
                     </small>
                   </div>
                 }
                 key={mediaFileId}
               >
+                {linkedVideoFile && videoUrl && (
+                  <Row gutter={16} className="mb-4">
+                    <Col xs={24} className="flex justify-center">
+                      <video
+                        key={videoUrl}
+                        controls
+                        preload="auto"
+                        playsInline
+                        className="w-3/5 h-auto mx-auto rounded-lg"
+                      >
+                        <source src={videoUrl} type="video/mp4" />
+                        Ваш браузер не поддерживает видео.
+                      </video>
+                    </Col>
+                  </Row>
+                )}
+
                 <Row gutter={16} className="mb-4">
                   <Col xs={24}>
-                    <audio key={url} controls style={{ width: "100%" }}>
-                      <source src={url} type="audio/mpeg" />
+                    <audio key={audioUrl} controls style={{ width: "100%" }}>
+                      <source src={audioUrl} type="audio/mpeg" />
                       Ваш браузер не поддерживает аудио.
                     </audio>
                   </Col>
                 </Row>
-                <Card size="small" title="Транскрипт">
-                  <div className="space-y-2">
+
+                <Card
+                  size="small"
+                  title="Транскрипт"
+                  className="max-h-96 overflow-y-auto"
+                >
+                  <div className="space-y-2 text-sm">
                     {transcriptData && transcriptData.length > 0 ? (
                       transcriptData.map(
                         (fragment: TranscriptsMediaResponse) => {
                           const isHighlighted = activeSearchResults[
                             mediaFileId
                           ]?.includes(fragment.id);
-
                           return (
                             <div
                               key={fragment.id}
                               ref={(el) => {
                                 fragmentsRef.current[fragment.id] = el;
                               }}
-                              className={`p-3 rounded ${
+                              className={`p-2 rounded text-xs ${
                                 isHighlighted
                                   ? "bg-blue-50 border border-blue-200"
                                   : "bg-gray-100"
                               }`}
                             >
-                              <div className="font-bold">
+                              <div className="font-bold text-xs">
                                 {new Date(fragment.begin)
                                   .toISOString()
                                   .split("T")[1]
@@ -460,7 +491,7 @@ function OverviewComponent() {
                                   .split("T")[1]
                                   .slice(0, 8)}
                               </div>
-                              <div>
+                              <div className="mt-1">
                                 {highlightedText
                                   ? highlightText(
                                       fragment.text,
@@ -475,7 +506,7 @@ function OverviewComponent() {
                         }
                       )
                     ) : (
-                      <div>Нет транскрипта</div>
+                      <div className="text-xs">Нет транскрипта</div>
                     )}
                   </div>
                 </Card>
@@ -485,109 +516,6 @@ function OverviewComponent() {
         </Collapse>
       </Card>
       <Card title="Прикрепленные файлы">
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-2">Видео</h3>
-          <Row gutter={[24, 24]}>
-            {fileQueries.map((query, index) => {
-              const file = batch.files[index];
-              const ext =
-                file.filename.split(".").pop()?.toLowerCase() || "other";
-              const fileType = FILE_TYPE_MAP[ext];
-
-              if (query.isLoading) return null;
-              if (query.isError) return null;
-
-              if (fileType === FileType.VIDEO) {
-                const url = query.data;
-                return (
-                  <Col key={file.id} xs={24} sm={12} md={8} lg={6}>
-                    <div className="p-3 bg-white shadow rounded">
-                      <video
-                        controls
-                        className="w-full h-[180px] object-cover bg-black"
-                      >
-                        <source src={url} type="video/mp4" />
-                        Your browser does not support the video tag.
-                      </video>
-                      <span>{file.filename}</span>
-                    </div>
-                  </Col>
-                );
-              }
-              return null;
-            })}
-          </Row>
-        </div>
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-2">Аудиозаписи</h3>
-          <Row gutter={[24, 24]}>
-            {fileQueries.map((query, index) => {
-              const file = batch.files[index];
-              const ext =
-                file.filename.split(".").pop()?.toLowerCase() || "other";
-              const fileType = FILE_TYPE_MAP[ext];
-
-              if (query.isLoading) return null;
-              if (query.isError) return null;
-
-              if (fileType === FileType.AUDIO) {
-                const url = query.data;
-                return (
-                  <Col key={file.id} xs={24} sm={12} md={8} lg={6}>
-                    <div className="p-3 bg-white shadow rounded">
-                      <audio controls style={{ width: "100%" }}>
-                        <source src={url} type="audio/mpeg" />
-                        Your browser does not support the audio tag.
-                      </audio>
-                      <span>{file.filename}</span>
-                    </div>
-                  </Col>
-                );
-              }
-
-              return null;
-            })}
-          </Row>
-        </div>
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-2">Изображения</h3>
-          <Row gutter={[24, 24]}>
-            {fileQueries.map((query, index) => {
-              const file = batch.files[index];
-              const ext =
-                file.filename.split(".").pop()?.toLowerCase() || "other";
-              const fileType = FILE_TYPE_MAP[ext];
-
-              if (query.isLoading) return null;
-              if (query.isError) return null;
-
-              if (fileType === FileType.IMAGE) {
-                const url = query.data;
-                return (
-                  <Col key={file.id} xs={24} sm={12} md={8} lg={6}>
-                    <div className="p-3 bg-white shadow rounded flex flex-col">
-                      <img
-                        src={url}
-                        alt={file.filename}
-                        className="w-full h-40 object-contain mb-2"
-                      />
-                      <span className="truncate">{file.filename}</span>
-                      <Button
-                        type="link"
-                        onClick={() =>
-                          downloadFile(url as string, file.filename)
-                        }
-                      >
-                        Скачать
-                      </Button>
-                    </div>
-                  </Col>
-                );
-              }
-              return null;
-            })}
-          </Row>
-        </div>
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-2">Документы</h3>
           <Row gutter={[24, 24]}>
