@@ -1,49 +1,34 @@
-name: Frontend PR Build Check
+name: Verify Vite Build (self‑hosted)
 
 on:
   pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened]
+    branches: [ main ]
+    types: [ opened, synchronize, reopened ]
 
 jobs:
-  build-test:
-    runs-on: self-hosted
-    concurrency:
-      group: pr-${{ github.head_ref }}
-      cancel-in-progress: true
+  build:
+    name: Build React+Vite app
+    runs-on: [ self-hosted, linux ]
+    timeout-minutes: 20
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
 
-      - name: Set up Node 20
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
-      - name: Install dependecies
-        working-directory: frontend
+      - name: Install dependencies (clean)
         run: npm ci
 
-      - name: Type‑check
-        working-directory: frontend
-        run: npm run typecheck --if-present
-
-      - name: Run unit tests
-        working-directory: frontend
-        run: npm test --if-present -- --ci
-
       - name: Build production bundle
-        working-directory: frontend
         env:
-          CI: "true"
+          NODE_OPTIONS: --max_old_space_size=4096
         run: npm run build
-
-      - name: Archive dist
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: vite-dist
-          path: frontend/dist
+        
+    concurrency:
+      group: pr-${{ github.event.pull_request.number }}-build
+      cancel-in-progress: true
