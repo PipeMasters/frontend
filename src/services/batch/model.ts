@@ -7,7 +7,7 @@ export interface BatchVideo {
   dateArrived: string;
   trainNumber: number;
   chiefName: string;
-  branch: string;
+  branchName: string;
 }
 
 export interface FileInBatch {
@@ -23,7 +23,6 @@ export interface FileInBatch {
   };
 }
 
-
 export interface AbsenseInBatch {
   id?: number;
   cause: Cause;
@@ -34,7 +33,7 @@ export enum Cause {
   DEVICE_FAILURE = "DEVICE_FAILURE",
   REGULATORY_EXEMPT = "REGULATORY_EXEMPT",
   HUMAN_FACTOR = "HUMAN_FACTOR",
-  OTHER = "OTHER"
+  OTHER = "OTHER",
 }
 
 export const getCauseLabel = (cause: Cause): string => {
@@ -50,7 +49,7 @@ export const getCauseLabel = (cause: Cause): string => {
     default:
       return "Неизвестно";
   }
-}
+};
 
 export interface BatchResponse {
   id: number;
@@ -72,9 +71,9 @@ export interface BatchResponse {
 }
 
 export interface BatchRequest {
-  uploadedById: number; 
-  trainDeparted: string; 
-  trainArrived: string;  
+  uploadedById: number;
+  trainDeparted: string;
+  trainArrived: string;
   trainId: number;
   comment: string;
   branchId: number;
@@ -96,7 +95,7 @@ export interface BatchQueryParams {
   keywords?: string;
   page?: number;
   size?: number;
-  sort?: string; 
+  sort?: string;
 }
 
 export interface BatchPageResponse {
