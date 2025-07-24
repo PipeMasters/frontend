@@ -14,7 +14,7 @@ const SearchResults: FC<SearchResultsProps> = ({
     dateArrived: result.dateArrived,
     trainNumber: result.trainNumber,
     chiefName: result.chiefName,
-    branch: "Неизвестный филиал",
+    branchName: result.branchName,
   }));
 
   return (
@@ -40,7 +40,8 @@ const SearchResults: FC<SearchResultsProps> = ({
                 <div className="flex justify-between items-center">
                   <div>
                     <h3 className="font-bold">Запись №{batch.id}</h3>
-                    <h5 className="font-bold">Поезд №{batch.trainNumber}</h5>
+                    <p>Поезд №{batch.trainNumber}</p>
+                    <p>Филиал: {batch.branchName}</p>
                     <p>Начальник: {batch.chiefName}</p>
                     <p>
                       Отправлен:{" "}

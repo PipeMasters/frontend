@@ -1,32 +1,28 @@
 import { useState } from "react";
-import {
-  Form,
-  Input,
-  Button,
-  Card,
-  Upload,
-  Progress,
-  notification,
-} from "antd";
+import { Form, Button, Card, Upload, Progress, notification } from "antd";
 import { useUploadFile } from "../features/file/useUploadFile";
 import { FileType, FILE_TYPE_MAP } from "../services/file/model";
-import { Tooltip } from "antd";
-import { QuestionCircleOutlined } from "@ant-design/icons";
 import { getFileDuration } from "../utils/fileDuration";
 import { calculateFileHash } from "../utils/fileHash";
 import { VALID_EXTENSIONS } from "../utils/validExtensions";
 import { useQueryClient } from "@tanstack/react-query";
+import { useGetBatch } from "../features/batch";
+import { useGetTrain } from "../features/train";
+import { generateUniqueFilename } from "../utils/filenameUtils";
 
 export default function UploadFileForm({ fileId }: { fileId: number }) {
   const [form] = Form.useForm();
   const { uploadFileAsync, isPending } = useUploadFile(fileId);
+  const { data: batch, isLoading: isBatchLoading } = useGetBatch(fileId);
+  const trainId = batch?.trainId;
+  const trainQuery = useGetTrain(trainId ?? 1);
+  const train = trainQuery.data;
   const queryClient = useQueryClient();
   const MAX_FILES = 5;
   const [files, setFiles] = useState<File[]>([]);
   const [activeUploads, setActiveUploads] = useState<number>(0);
 
-  const onFinish = async (values: any) => {
-    const { filenameTemplate, startIndex = 1 } = values;
+  const onFinish = async () => {
     if (!files.length) {
       notification.error({ message: "Ошибка", description: "Выберите файлы" });
       return;
@@ -38,9 +34,22 @@ export default function UploadFileForm({ fileId }: { fileId: number }) {
       });
       return;
     }
+    if (isBatchLoading) {
+      notification.warning({
+        message: "Предупреждение",
+        description: "Данные батча еще загружаются, попробуйте позже.",
+      });
+      return;
+    }
+    if (!batch) {
+      notification.error({
+        message: "Ошибка",
+        description: "Не удалось получить данные батча",
+      });
+      return;
+    }
 
     setActiveUploads(files.length);
-    const startIdx = Number(startIndex) || 1;
 
     try {
       for (let i = 0; i < files.length; i++) {
@@ -60,10 +69,9 @@ export default function UploadFileForm({ fileId }: { fileId: number }) {
           continue;
         }
 
-        const index = startIdx + i;
-        const filename = `${filenameTemplate.replace("{{index}}", index.toString())}.${ext}`;
-        const key = `upload-${originalName}-${Math.random().toString(36).substring(7)}`;
+        const filename = generateUniqueFilename(originalName, batch, train);
 
+        const key = `upload-${originalName}-${Math.random().toString(36).substring(7)}`;
         notification.info({
           key,
           message: `Загрузка: ${originalName}`,
@@ -84,7 +92,6 @@ export default function UploadFileForm({ fileId }: { fileId: number }) {
               console.warn(`Не удалось получить длительность для ${file.name}`);
             }
           }
-
           await uploadFileAsync({
             fileData: {
               filename,
@@ -97,7 +104,6 @@ export default function UploadFileForm({ fileId }: { fileId: number }) {
             file,
             onProgress: (progress) => setProgress(key, progress),
           });
-
           notification.success({
             key,
             message: `Файл ${originalName} загружен`,
@@ -117,21 +123,20 @@ export default function UploadFileForm({ fileId }: { fileId: number }) {
             notification.error({
               key,
               message: `Ошибка: ${originalName}`,
-              description: error.message,
+              description:
+                error.message || "Произошла ошибка при загрузке файла",
               duration: 3,
             });
           }
-          throw error;
         }
       }
-
-      notification.success({ message: "Все файлы успешно загружены" });
+      notification.success({ message: "Загрузка файлов завершена" });
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ["batch", fileId] });
         queryClient.invalidateQueries({ queryKey: ["files"] });
       }, 4000);
     } catch (error) {
-      notification.error({ message: "Не все файлы загружены" });
+      notification.error({ message: "Произошла ошибка при загрузке файлов" });
     } finally {
       form.resetFields();
       setFiles([]);
@@ -187,7 +192,6 @@ export default function UploadFileForm({ fileId }: { fileId: number }) {
             >
               <Button>Выбрать файлы</Button>
             </Upload>
-
             {files.map((file, index) => (
               <div
                 key={index}
@@ -203,102 +207,18 @@ export default function UploadFileForm({ fileId }: { fileId: number }) {
             ))}
           </div>
         </Form.Item>
-        <Form.Item
-          label={
-            <span>
-              Шаблон имени файла&nbsp;
-              <Tooltip
-                title={
-                  <div className="max-w-fit">
-                    <p>
-                      Используйте {"{{index}}"} для указания порядкового номера.
-                    </p>
-                    <ul
-                      style={{
-                        paddingLeft: 16,
-                        margin: "8px 0",
-                        listStyleType: "disc",
-                      }}
-                    >
-                      <li>
-                        <code>file-{"{{index}}"} → file-1.mp4</code>
-                      </li>
-                      <li>
-                        <code>report-{"{{index}}"} → report-5.mp4</code>
-                      </li>
-                      <li>
-                        <code>video-{"{{index}}"} → video-10.mp4</code>
-                      </li>
-                    </ul>
-                  </div>
-                }
-              >
-                <QuestionCircleOutlined style={{ color: "#1890ff" }} />
-              </Tooltip>
-            </span>
-          }
-          name="filenameTemplate"
-          rules={[
-            { required: true, message: "Введите шаблон имени" },
-            {
-              pattern: /\{\{index\}\}/,
-              message: "Шаблон должен содержать {{index}}",
-            },
-            {
-              validator: (_, value) => {
-                if (value.match(/[^\p{L}0-9\-_\{\}]/gu)) {
-                  return Promise.reject(
-                    "Разрешены буквы (включая русские), цифры, дефисы и подчеркивания"
-                  );
-                }
-                return Promise.resolve();
-              },
-            },
-          ]}
-          initialValue="file-{{index}}"
-        >
-          <Input placeholder="file-{{index}}" />
-        </Form.Item>
-
-        <Form.Item
-          label={
-            <span>
-              Начальный индекс&nbsp;
-              <Tooltip
-                title={
-                  <div className="max-w-fit">
-                    <p>Укажите начальный индекс для нумерации файлов.</p>
-                  </div>
-                }
-              >
-                <QuestionCircleOutlined style={{ color: "#1890ff" }} />
-              </Tooltip>
-            </span>
-          }
-          name="startIndex"
-          normalize={(value) => Number(value) || 1}
-          rules={[
-            { required: true, message: "Введите начальный индекс" },
-            {
-              type: "number",
-              min: 1,
-              message: "Индекс должен быть ≥ 1",
-            },
-          ]}
-          initialValue={1}
-        >
-          <Input type="number" min={1} placeholder="1" />
-        </Form.Item>
         <Form.Item>
           <Button
             htmlType="submit"
-            disabled={isPending || activeUploads >= MAX_FILES}
-            loading={isPending || activeUploads > 0}
+            disabled={isPending || activeUploads > 0 || isBatchLoading}
+            loading={isPending || activeUploads > 0 || isBatchLoading}
             className="!bg-red-600 !text-white !border-none w-full"
           >
-            {isPending || activeUploads > 0
-              ? `${activeUploads} файлов в очереди...`
-              : "Загрузить файлы"}
+            {isBatchLoading
+              ? "Загрузка данных батча..."
+              : isPending || activeUploads > 0
+                ? `${activeUploads} файлов в очереди...`
+                : "Загрузить файлы"}
           </Button>
         </Form.Item>
       </Form>

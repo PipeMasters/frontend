@@ -17,5 +17,6 @@ export interface TranscriptsSearchResponse {
   dateArrived: string;
   trainNumber: number;
   chiefName: string;
+  branchName: string;
   files: TranscriptsBatchResponse[];
 }
