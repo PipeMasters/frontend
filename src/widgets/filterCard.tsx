@@ -8,6 +8,7 @@ import type { BatchQueryParams } from "../services/batch";
 import { useGetTags } from "../features/tag";
 import { useFilterState, useFilterActions } from "../store/filterStore";
 import dayjs from "dayjs";
+import { useGetChiefs } from "../features/train/useGetChiefs";
 
 const { Option } = Select;
 
@@ -23,15 +24,14 @@ export default function FilterCard({ onFilter }: FilterCardProps) {
   const { data: tags } = useGetTags();
   const { data: trains } = useGetTrains();
   const { data: branches } = useGetBranches();
+  const { data: chiefs} = useGetChiefs();
   const [tagOptions, setTagOptions] = useState<{ label: string; value: string }[]>([]);
   const [searching, setSearching] = useState(false);
 
   const [form] = Form.useForm();
 
   const workers = users?.filter((user) => user.roles.includes(RoleEnum.USER));
-  const chiefs = users?.filter((user) =>
-    user.roles.includes(RoleEnum.BRANCH_ADMIN)
-  );
+
 
   useEffect(() => {
     form.setFieldsValue(convertParamsToFormValues(filters));
@@ -215,7 +215,7 @@ export default function FilterCard({ onFilter }: FilterCardProps) {
 
           <Form.Item name="tagNames">
             <Select
-              mode="tags"
+              mode="multiple"
               style={{ width: "100%" }}
               placeholder="Введите тег"
               allowClear

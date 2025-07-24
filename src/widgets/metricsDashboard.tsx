@@ -164,12 +164,8 @@ export default function MetricsDashboard() {
                 <YAxis unit=" MB" />
                 <Legend />
                 <RechartsTooltip formatter={(value) => `${value} MB`} />
-                <Bar
-                  dataKey="previous"
-                  fill="#8884d8"
-                  name="Предыдущий период"
-                />
-                <Bar dataKey="current" fill="#82ca9d" name="Текущий период" />
+                <Bar dataKey="previous" fill="#FFA726" name="Предыдущий период" />
+                <Bar dataKey="current" fill="#26A69A" name="Текущий период" />
               </BarChart>
             </ResponsiveContainer>
           </Card>

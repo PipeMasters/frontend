@@ -1,4 +1,5 @@
 import client from "../baseApi";
+import type { UserResponse } from "../user";
 import type { TrainResponse, TrainScheduleUploadResponse } from "./model";
 
 export const getTrains = async (): Promise<TrainResponse[]> => {
@@ -31,3 +32,8 @@ export async function uploadTrainSchedulesExcel(file: File): Promise<TrainSchedu
 
   return data;
 }
+
+export const getChiefs = async (): Promise<UserResponse[]> => {
+  const response = await client.get("/train/chiefs");
+  return response.data;
+};
