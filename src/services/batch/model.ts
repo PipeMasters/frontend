@@ -9,17 +9,30 @@ export interface BatchVideo {
   chiefName: string;
   branchName: string;
 }
+export interface TagInstance {
+  id: number;
+  tagName: string;
+  tagType: string;
+  tagValue: string;
+  fragmentId: number;
+  beginTime: number;
+  endTime: number;
+  matchText: string;
+  
+}
 
 export interface FileInBatch {
   id: number;
   filename: string;
   fileType: FileType;
   uploadedAt: string;
+  tagInstances?: TagInstance[];
   source: {
     id: number;
     name: string;
     filename: "string";
     fileType: FileType;
+    tagInstances?: TagInstance[];
   };
 }
 

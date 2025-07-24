@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Button, Card, Table, Col, Row, Tag } from "antd";
 import { useGetBatch } from "../../features/batch";
 import { useGetTrain } from "../../features/train";
-import { getCauseLabel } from "../../services/batch";
+import { getCauseLabel, type TagInstance } from "../../services/batch";
 import { useGetFileUrls } from "../../features/file";
 import { FILE_TYPE_MAP, FileType } from "../../services/file";
 import UploadFileForm from "../../widgets/uploadFileForm";
@@ -22,6 +22,9 @@ export const Route = createFileRoute("/overview/$fileId")({
 function OverviewComponent() {
   const { fileId } = Route.useParams();
   const [searchQuery, setSearchQuery] = useState("");
+  const [expandedHeaderTags, setExpandedHeaderTags] = useState<
+    Record<number, boolean>
+  >({});
   const [lastSearchQuery, setLastSearchQuery] = useState<string | null>(null);
   const [activeSearchResults, setActiveSearchResults] = useState<{
     [key: number]: number[];
@@ -364,10 +367,11 @@ function OverviewComponent() {
         <Collapse accordion>
           {audioFileIds.map((mediaFileId, index) => {
             const audioFile = batch.files.find((f) => f.id === mediaFileId);
-
             const linkedVideoFile = audioFile?.source
-              ? batch.files.find((f) => f.id === audioFile.source.id)
+              ? batch.files.find((f) => f.id === audioFile.source!.id)
               : null;
+
+            const tagInstancesForAudio = audioFile?.tagInstances || [];
 
             const transcriptQuery = transcriptQueries[index];
             const isSearchActive = activeSearchResults[mediaFileId]?.length > 0;
@@ -396,7 +400,6 @@ function OverviewComponent() {
             const audioUrlQuery =
               fileQueries[batch.files.findIndex((f) => f.id === mediaFileId)];
             const audioUrl = audioUrlQuery?.data;
-
             let videoUrl = null;
             let videoUrlQuery = null;
             if (linkedVideoFile) {
@@ -408,22 +411,107 @@ function OverviewComponent() {
                 videoUrl = videoUrlQuery?.data;
               }
             }
-
             const transcriptData = transcriptQuery.data;
+            const fragmentMap = new Map<number, TranscriptsMediaResponse>();
+            if (transcriptData) {
+              transcriptData.forEach((fragment) => {
+                fragmentMap.set(fragment.id, fragment);
+              });
+            }
+            const tagsByFragmentId: Record<number, TagInstance[]> = {};
+            tagInstancesForAudio.forEach((tag) => {
+              if (!tagsByFragmentId[tag.fragmentId]) {
+                tagsByFragmentId[tag.fragmentId] = [];
+              }
+              tagsByFragmentId[tag.fragmentId].push(tag);
+            });
 
             return (
               <Collapse.Panel
                 header={
-                  <div className="flex flex-col ">
-                    <span className="truncate max-w-lg">
-                      {audioFile?.filename?.replace(/\.[^/.]+$/, "")}{" "}
+                  <div className="flex flex-col">
+                    <div className="flex items-center flex-wrap gap-1">
+                      <span className="truncate max-w-lg mr-2">
+                        {audioFile?.filename?.replace(/\.[^/.]+$/, "")}
+                      </span>
                       {isSearchActive && (
-                        <Tag color="green" className="!ml-2">
+                        <Tag color="green">
                           Найдено: {activeSearchResults[mediaFileId]?.length}
                         </Tag>
                       )}
-                    </span>
-                    <small className="text-gray-500 text-xs">
+                      {tagInstancesForAudio &&
+                        tagInstancesForAudio.length > 0 && (
+                          <div className="flex flex-wrap items-center gap-1 mt-1 w-full">
+                            {(() => {
+                              const allTagGroups: Record<
+                                string,
+                                TagInstance[]
+                              > = {};
+                              tagInstancesForAudio.forEach((tag) => {
+                                if (!allTagGroups[tag.tagName]) {
+                                  allTagGroups[tag.tagName] = [];
+                                }
+                                allTagGroups[tag.tagName].push(tag);
+                              });
+                              const allGroupedTagsArray =
+                                Object.entries(allTagGroups);
+
+                              const groupedTagsToShow = expandedHeaderTags[
+                                mediaFileId
+                              ]
+                                ? allGroupedTagsArray
+                                : allGroupedTagsArray.slice(0, 10);
+
+                              const totalUniqueTags =
+                                allGroupedTagsArray.length;
+
+                              return (
+                                <>
+                                  {groupedTagsToShow.map(([tagName, tags]) => {
+                                    const firstTag = tags[0];
+                                    const color =
+                                      firstTag.tagType === "RULE"
+                                        ? "blue"
+                                        : "purple";
+                                    const displayText =
+                                      tags.length > 1
+                                        ? `${tagName} (${tags.length})`
+                                        : tagName;
+
+                                    return (
+                                      <Tag
+                                        key={tagName}
+                                        color={color}
+                                        className="text-xs m-0 flex-shrink-0"
+                                      >
+                                        {displayText}
+                                      </Tag>
+                                    );
+                                  })}
+                                  {totalUniqueTags > 10 && (
+                                    <Tag
+                                      color="default"
+                                      className="text-xs m-0 cursor-pointer hover:opacity-80 flex-shrink-0"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setExpandedHeaderTags((prev) => ({
+                                          ...prev,
+                                          [mediaFileId]: !prev[mediaFileId],
+                                        }));
+                                      }}
+                                    >
+                                      {expandedHeaderTags[mediaFileId]
+                                        ? "Скрыть"
+                                        : `+${totalUniqueTags - 10} ещё`}
+                                    </Tag>
+                                  )}
+                                </>
+                              );
+                            })()}
+                          </div>
+                        )}
+                    </div>
+                    <small className="text-gray-500 text-xs mt-1">
                       Нажмите, чтобы посмотреть текст коммуникаций
                     </small>
                   </div>
@@ -446,7 +534,6 @@ function OverviewComponent() {
                     </Col>
                   </Row>
                 )}
-
                 <Row gutter={16} className="mb-4">
                   <Col xs={24}>
                     <audio key={audioUrl} controls style={{ width: "100%" }}>
@@ -455,10 +542,9 @@ function OverviewComponent() {
                     </audio>
                   </Col>
                 </Row>
-
                 <Card
                   size="small"
-                  title="Транскрипт"
+                  title="Текст коммуникаций"
                   className="max-h-96 overflow-y-auto"
                 >
                   <div className="space-y-2 text-sm">
@@ -468,6 +554,9 @@ function OverviewComponent() {
                           const isHighlighted = activeSearchResults[
                             mediaFileId
                           ]?.includes(fragment.id);
+                          const tagsForThisFragment =
+                            tagsByFragmentId[fragment.id] || [];
+
                           return (
                             <div
                               key={fragment.id}
@@ -501,6 +590,28 @@ function OverviewComponent() {
                                     )
                                   : fragment.text}
                               </div>
+                              {tagsForThisFragment.length > 0 && (
+                                <div className="mt-2 pl-2 border-l-2 border-dashed border-gray-400">
+                                  <div className="text-xs font-semibold text-gray-600">
+                                    Теги:
+                                  </div>
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {tagsForThisFragment.map((tag) => (
+                                      <Tag
+                                        key={tag.id}
+                                        color={
+                                          tag.tagType === "RULE"
+                                            ? "blue"
+                                            : "purple"
+                                        }
+                                        className="text-xs"
+                                      >
+                                        {tag.tagName}
+                                      </Tag>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           );
                         }
@@ -516,7 +627,7 @@ function OverviewComponent() {
         </Collapse>
       </Card>
       <Card title="Прикрепленные файлы">
-         <div className="mb-6">
+        <div className="mb-6">
           <h3 className="text-md font-semibold mb-2">Изображения</h3>
           <Row gutter={[24, 24]}>
             {fileQueries.map((query, index) => {
@@ -538,7 +649,9 @@ function OverviewComponent() {
                         alt={file.filename}
                         className="w-full h-40 object-contain mb-2"
                       />
-                      <span className="max-w-full truncate">{file.filename}</span>
+                      <span className="max-w-full truncate">
+                        {file.filename}
+                      </span>
                       <Button
                         type="link"
                         onClick={() =>
@@ -573,7 +686,9 @@ function OverviewComponent() {
                 return (
                   <Col key={file.id} xs={24} sm={12} md={8} lg={6}>
                     <div className="p-3 bg-white shadow rounded flex flex-col items-center">
-                      <span className="truncate max-w-full text-center">📄 {file.filename}</span>
+                      <span className="truncate max-w-full text-center">
+                        📄 {file.filename}
+                      </span>
                       <a
                         href={url}
                         download={file.filename}
