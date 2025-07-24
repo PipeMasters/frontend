@@ -414,8 +414,8 @@ function OverviewComponent() {
             return (
               <Collapse.Panel
                 header={
-                  <div className="flex flex-col">
-                    <span>
+                  <div className="flex flex-col ">
+                    <span className="truncate max-w-lg">
                       {audioFile?.filename?.replace(/\.[^/.]+$/, "")}{" "}
                       {isSearchActive && (
                         <Tag color="green" className="!ml-2">
@@ -517,7 +517,7 @@ function OverviewComponent() {
       </Card>
       <Card title="Прикрепленные файлы">
          <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-2">Изображения</h3>
+          <h3 className="text-md font-semibold mb-2">Изображения</h3>
           <Row gutter={[24, 24]}>
             {fileQueries.map((query, index) => {
               const file = batch.files[index];
@@ -538,7 +538,7 @@ function OverviewComponent() {
                         alt={file.filename}
                         className="w-full h-40 object-contain mb-2"
                       />
-                      <span className="truncate">{file.filename}</span>
+                      <span className="max-w-full truncate">{file.filename}</span>
                       <Button
                         type="link"
                         onClick={() =>
@@ -557,7 +557,7 @@ function OverviewComponent() {
         </div>
 
         <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-2">Документы</h3>
+          <h3 className="text-md font-semibold mb-2">Документы</h3>
           <Row gutter={[24, 24]}>
             {fileQueries.map((query, index) => {
               const file = batch.files[index];
@@ -573,7 +573,7 @@ function OverviewComponent() {
                 return (
                   <Col key={file.id} xs={24} sm={12} md={8} lg={6}>
                     <div className="p-3 bg-white shadow rounded flex flex-col items-center">
-                      <span>📄 {file.filename}</span>
+                      <span className="truncate max-w-full text-center">📄 {file.filename}</span>
                       <a
                         href={url}
                         download={file.filename}
