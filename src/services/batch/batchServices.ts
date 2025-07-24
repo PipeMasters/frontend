@@ -18,6 +18,28 @@ export const createBatch = async (batchData: BatchRequest): Promise<BatchRespons
 
 
 export async function getBatches(params: BatchQueryParams): Promise<BatchPageResponse> {
-  const response = await client.get<BatchPageResponse>("/batch", { params });
+  console.log("Sending params to API:", params);
+
+  function serialize(params: Record<string, unknown>): string {
+    const search = new URLSearchParams();
+
+    Object.entries(params).forEach(([key, value]) => {
+      if (value == null) return;
+
+      if (Array.isArray(value)) {
+        value.forEach(v => search.append(key, String(v)));
+      } else {
+        search.append(key, String(value));
+      }
+    });
+
+    return search.toString();
+  }
+
+  const response = await client.get<BatchPageResponse>("/batch", {
+    params,
+    paramsSerializer: serialize,
+  });
+
   return response.data;
 }
