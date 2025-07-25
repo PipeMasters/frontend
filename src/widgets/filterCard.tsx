@@ -1,12 +1,14 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { DatePicker, Select, Button, Form, Spin } from "antd";
 import { useGetUsers } from "../features/user";
 import { useGetTrains } from "../features/train";
 import { RoleEnum } from "../services/user";
 import { useGetBranches } from "../features/branch/useGetBranches";
 import type { BatchQueryParams } from "../services/batch";
+import { useGetTags } from "../features/tag";
 import { useFilterState, useFilterActions } from "../store/filterStore";
 import dayjs from "dayjs";
+import { useGetChiefs } from "../features/train/useGetChiefs";
 
 const { Option } = Select;
 
@@ -19,37 +21,57 @@ export default function FilterCard({ onFilter }: FilterCardProps) {
   const { setFilters, resetFilters } = useFilterActions();
 
   const { data: users, isLoading } = useGetUsers();
+  const { data: tags } = useGetTags();
   const { data: trains } = useGetTrains();
   const { data: branches } = useGetBranches();
+  const { data: chiefs} = useGetChiefs();
+  const [tagOptions, setTagOptions] = useState<{ label: string; value: string }[]>([]);
+  const [searching, setSearching] = useState(false);
+
   const [form] = Form.useForm();
 
   const workers = users?.filter((user) => user.roles.includes(RoleEnum.USER));
-  const chiefs = users?.filter((user) =>
-    user.roles.includes(RoleEnum.BRANCH_ADMIN)
-  );
+
 
   useEffect(() => {
     form.setFieldsValue(convertParamsToFormValues(filters));
   }, [filters, form]);
 
   const onFinish = (values: any) => {
+    const selectedNames: string[] = values.tagNames || [];
 
-    const keywordsString = Array.isArray(values.keywords)
-      ? values.keywords.join(", ")
-      : values.keywords;
+    const tagIdList =
+      selectedNames && tags
+        ? tags
+            .filter((tag) => selectedNames.includes(tag.name))
+            .map((tag) => tag.id)
+            .filter((id) => typeof id === "number" && !isNaN(id))
+        : undefined;
 
     const params: BatchQueryParams = {
       trainId: values.trainId,
       uploadedById: values.workers,
       chiefId: values.chiefs,
       branchId: values.branch,
-      keywords: keywordsString,
-      departureDateFrom: values.departureDateRange?.[0]?.format("YYYY-MM-DD"),
-      departureDateTo: values.departureDateRange?.[1]?.format("YYYY-MM-DD"),
-      arrivalDateFrom: values.arrivalDateRange?.[0]?.format("YYYY-MM-DD"),
-      arrivalDateTo: values.arrivalDateRange?.[1]?.format("YYYY-MM-DD"),
-      createdFrom: values.createdDateRange?.[0]?.toISOString(),
-      createdTo: values.createdDateRange?.[1]?.toISOString(),
+      tagId: tagIdList ? tagIdList.flat() : undefined,
+      departureDateFrom: values.departureDateRange?.[0]
+        ? values.departureDateRange[0].format("YYYY-MM-DD")
+        : undefined,
+      departureDateTo: values.departureDateRange?.[1]
+        ? values.departureDateRange[1].format("YYYY-MM-DD")
+        : undefined,
+      arrivalDateFrom: values.arrivalDateRange?.[0]
+        ? values.arrivalDateRange[0].format("YYYY-MM-DD")
+        : undefined,
+      arrivalDateTo: values.arrivalDateRange?.[1]
+        ? values.arrivalDateRange[1].format("YYYY-MM-DD")
+        : undefined,
+      createdFrom: values.createdDateRange?.[0]
+        ? values.createdDateRange[0].toISOString()
+        : undefined,
+      createdTo: values.createdDateRange?.[1]
+        ? values.createdDateRange[1].toISOString()
+        : undefined,
       page: filters.page,
       size: filters.size,
     };
@@ -64,15 +86,38 @@ export default function FilterCard({ onFilter }: FilterCardProps) {
     onFilter({});
   };
 
+  const handleTagSearch = (searchText: string) => {
+    const trimmed = searchText.trim();
+    if (!trimmed) {
+      setTagOptions([]);
+      setSearching(false);
+      return;
+    }
+
+    setSearching(true);
+
+    const filtered =
+      tags
+        ?.filter((tag) =>
+          tag.name.toLowerCase().includes(trimmed.toLowerCase())
+        )
+        .map((tag) => ({ label: tag.name, value: tag.name })) || [];
+
+    setTagOptions(filtered);
+  };
+
   const convertParamsToFormValues = (params: BatchQueryParams): any => {
     return {
       trainId: params.trainId,
       workers: params.uploadedById,
       chiefs: params.chiefId,
       branch: params.branchId,
-      keywords: params.keywords
-        ? params.keywords.split(",").map((k) => k.trim())
-        : undefined,
+      tagNames:
+        params.tagId && tags
+          ? tags
+              .filter((tag) => params.tagId?.includes(tag.id))
+              .map((tag) => tag.name)
+          : undefined,
       departureDateRange:
         params.departureDateFrom && params.departureDateTo
           ? [dayjs(params.departureDateFrom), dayjs(params.departureDateTo)]
@@ -168,15 +213,17 @@ export default function FilterCard({ onFilter }: FilterCardProps) {
             </Select>
           </Form.Item>
 
-          <Form.Item name="keywords">
+          <Form.Item name="tagNames">
             <Select
-              mode="tags"
+              mode="multiple"
               style={{ width: "100%" }}
-              placeholder="Введите ключевые слова"
-              tokenSeparators={[",", " "]}
+              placeholder="Введите тег"
               allowClear
-              open={false}
-              suffixIcon={null}
+              showSearch
+              filterOption={false}
+              onSearch={handleTagSearch}
+              options={tagOptions}
+              notFoundContent={searching ? undefined : null}
             />
           </Form.Item>
 

@@ -105,7 +105,7 @@ export interface BatchQueryParams {
   chiefId?: number;
   uploadedById?: number;
   branchId?: number;
-  keywords?: string;
+  tagId?: number[];
   page?: number;
   size?: number;
   sort?: string;

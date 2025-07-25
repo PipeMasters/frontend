@@ -16,7 +16,7 @@ const SearchInput: FC<SearchInputProps> = ({
   isFetching,
   clearSearch,
 }) => (
-  <div className="max-w-5xl">
+  <div className="md:max-w-3xl">
     <Input.Search
       placeholder="Поиск по тексту коммуникаций"
       value={searchQuery}

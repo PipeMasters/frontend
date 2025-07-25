@@ -86,12 +86,10 @@ function RouteComponent() {
               clearSearch={clearSearch}
             />
           </div>
-          <ImotioSwitch />  
+          <ImotioSwitch />
         </div>
         {showSearchResults && searchResults.length > 0 ? (
-          <SearchResults
-            searchResults={searchResults}
-          />
+          <SearchResults searchResults={searchResults} />
         ) : showNoResults ? (
           <Card>
             <p>По вашему запросу ничего не найдено.</p>
@@ -102,7 +100,7 @@ function RouteComponent() {
             <div className="flex justify-center mt-4">
               <Pagination
                 current={(filterParams.page ?? 0) + 1}
-                pageSize={filterParams.size}
+                pageSize={filterParams.size ?? 10}
                 total={allBatches?.totalElements ?? 0}
                 showSizeChanger
                 pageSizeOptions={["5", "10", "20", "50"]}
