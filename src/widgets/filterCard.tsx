@@ -224,6 +224,7 @@ export default function FilterCard({ onFilter }: FilterCardProps) {
               onSearch={handleTagSearch}
               options={tagOptions}
               notFoundContent={searching ? undefined : null}
+              suffixIcon={null}
             />
           </Form.Item>
 
