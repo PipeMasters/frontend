@@ -3,9 +3,7 @@ import { Button, Form, Input, Modal, Select, Upload, notification } from "antd";
 import { useCreateTrain } from "../features/train";
 import { useGetBranches } from "../features/branch/useGetBranches";
 import { useUploadTrainSchedules } from "../features/train";
-import { useGetUsers } from "../features/user";
 import type { TrainResponse } from "../services/train";
-import { RoleEnum } from "../services/user";
 import { useGetChiefs } from "../features/train/useGetChiefs";
 
 const { Option } = Select;
