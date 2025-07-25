@@ -6,6 +6,7 @@ import { useUploadTrainSchedules } from "../features/train";
 import { useGetUsers } from "../features/user";
 import type { TrainResponse } from "../services/train";
 import { RoleEnum } from "../services/user";
+import { useGetChiefs } from "../features/train/useGetChiefs";
 
 const { Option } = Select;
 
@@ -23,10 +24,7 @@ export default function CreateTrainForm({
   const { mutate: uploadSchedules, isPending: isUploading } =
     useUploadTrainSchedules();
   const { data: branches } = useGetBranches();
-  const { data: users } = useGetUsers();
-  const chief = users?.filter((user) =>
-    user.roles.includes(RoleEnum.BRANCH_ADMIN)
-  );
+  const { data: chiefs} = useGetChiefs();
 
   const openSuccessNotification = (message: string) => {
     notification.success({
@@ -130,7 +128,7 @@ export default function CreateTrainForm({
           rules={[{ required: true, message: "Выберите начальника" }]}
         >
           <Select placeholder="Начальник" allowClear>
-            {chief?.map((user) => (
+            {chiefs?.map((user) => (
               <Option key={user.id} value={user.id}>
                 {user.surname} {user.name}
               </Option>
